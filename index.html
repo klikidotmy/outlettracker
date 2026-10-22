@@ -2,8 +2,8 @@
 <html lang="ms">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0f1115">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0A2E8A">
 <title>KLIKI Outlet Tracker</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="https://klikidotmy.github.io/kliki-marketing-dashboard/icons/apple-touch-icon.png">
@@ -12,80 +12,154 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
-    --text:#f2f3f5; --sub:#8b93a3;
-    --phone:#4d9dff; --repair:#ffcc4d; --cc:#5be08a; --others:#c98bff;
-    --danger:#ff5f5f; --ok:#5be08a; --warn:#ffb84d;
-    --lead:#17c3b2; --lead2:#6fe9db; --lead-dark:#0e7f74;
-    --walk:#ff8a3d; --walk2:#ffb572; --walk-dark:#b35d1f;
-    --accent:var(--lead); --accent2:var(--lead2); --accent-dark:var(--lead-dark);
-    --radius:16px;
+    color-scheme: light;
+    --brand:#1565FF; --brand-deep:#0A2E8A; --brand-soft:#E8F0FF;
+    --navy:#0A1A47; --navy-2:#0A2E8A;
+    --bg:#F4F6FB; --surface:#fff; --surface-2:#F1F4F9; --line:#E5E9F1;
+    --text:#0B1530; --text-2:#475268; --muted:#8892A6;
+    --good:#0E9F57; --good-bg:#E6F6EE; --warn:#B26A00; --warn-bg:#FFF3DD; --bad:#E0393E; --bad-bg:#FDECEC;
+    --c-phone:#1565FF; --c-phone-bg:#E8F0FF; --c-repair:#C77700; --c-repair-bg:#FFF3DD;
+    --c-cc:#0E9F57; --c-cc-bg:#E6F6EE; --c-others:#7C4DDB; --c-others-bg:#F1EAFD;
+    --shadow:0 1px 2px rgba(11,21,48,.04),0 6px 20px -8px rgba(11,21,48,.10);
+    --shadow-lg:0 2px 4px rgba(11,21,48,.04),0 18px 40px -16px rgba(11,21,48,.22);
+    --radius:16px; --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
   }
-  body.k-walkin{--accent:var(--walk); --accent2:var(--walk2); --accent-dark:var(--walk-dark);}
+  @media (prefers-color-scheme: dark){
+    :root{
+      color-scheme: dark;
+      --bg:#0A0F1C; --surface:#121A2B; --surface-2:#1A2336; --line:#243049;
+      --text:#EEF2FA; --text-2:#B6C0D4; --muted:#7F8BA3; --brand-soft:#16264A;
+      --good:#45C987; --good-bg:#11301F; --warn:#F2B14C; --warn-bg:#352710; --bad:#F2696D; --bad-bg:#3A1A1C;
+      --c-phone:#6EA0FF; --c-phone-bg:#16264A; --c-repair:#F2B14C; --c-repair-bg:#352710;
+      --c-cc:#45C987; --c-cc-bg:#11301F; --c-others:#B39AF5; --c-others-bg:#251D42;
+      --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-lg:0 10px 30px rgba(0,0,0,.4);
+      --navy:#070F26; --navy-2:#0B1F5C;
+    }
+  }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;}
-  body{background:var(--bg); color:var(--text); font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; padding-bottom:60px; min-height:100vh;}
-  header{padding:18px 18px 10px; position:sticky; top:0; z-index:10; background:linear-gradient(180deg,var(--bg) 75%,rgba(15,17,21,0));}
-  header h1{margin:0; font-size:19px; font-weight:800; letter-spacing:-0.02em;}
-  header .tag{color:var(--sub); font-size:13px; margin-top:2px;}
-  #outletBar{padding:6px 18px 4px; display:flex; gap:8px; align-items:center;}
-  .sel-wrap{position:relative; flex:1;}
-  .sel-wrap::after{content:"▾"; position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--sub); pointer-events:none;}
-  #outletSelect{width:100%; appearance:none; -webkit-appearance:none; background:var(--panel); border:1px solid var(--line); border-radius:14px; color:var(--text); font:inherit; font-size:16px; font-weight:700; padding:14px 40px 14px 14px;}
-  #pinBtn{font-size:12px; padding:10px 12px; white-space:nowrap;}
-  main{padding:6px 18px 0;}
-  #emptyState{margin-top:60px; text-align:center; color:var(--sub); font-size:15px; line-height:1.5;}
+  html,body{margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font:14.5px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-feature-settings:"tnum" 1,"cv11" 1,"ss01" 1; -webkit-font-smoothing:antialiased; min-height:100vh; padding-bottom:calc(32px + var(--safe-b));}
+  svg.i{width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; flex:none;}
+  .wrap{max-width:520px; margin:0 auto;}
+
+  /* ---------- header ---------- */
+  header{position:relative; z-index:5; color:#fff; padding:calc(14px + var(--safe-t)) 16px 64px;
+    background:linear-gradient(135deg,var(--navy-2) 0%,var(--brand) 140%);}
+  header .row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  header .logo{height:22px; width:auto; display:block;}
+  header .sub{font-size:11.5px; color:rgba(255,255,255,.82); margin-top:4px; letter-spacing:.01em;}
+  .icon-btn{display:inline-flex; align-items:center; justify-content:center; gap:6px; height:38px; min-width:38px; padding:0 12px; border-radius:12px;
+    border:0; background:rgba(255,255,255,.16); color:#fff; font:600 12.5px Inter,system-ui,sans-serif; cursor:pointer;}
+  .icon-btn svg.i{width:17px; height:17px;}
+  .icon-btn:active{background:rgba(255,255,255,.26);}
+  .sel-wrap{position:relative; margin-top:14px;}
+  #outletSelect{width:100%; appearance:none; -webkit-appearance:none; border:0; border-radius:14px; color:#fff;
+    background:rgba(255,255,255,.16) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 16px center;
+    font:700 16px Inter,system-ui,sans-serif; padding:14px 40px 14px 16px; cursor:pointer;}
+  #outletSelect option{color:#0B1530; background:#fff;}
+  #outletSelect:focus{outline:2px solid rgba(255,255,255,.5); outline-offset:1px;}
+
+  main{position:relative; z-index:6; margin-top:-48px; padding:0 14px;}
+  #emptyState{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:36px 20px; text-align:center; color:var(--muted); font-size:14px; line-height:1.55;}
+  #emptyState .big{display:grid; place-items:center; width:52px; height:52px; margin:0 auto 12px; border-radius:16px; background:var(--brand-soft); color:var(--brand);}
+  #emptyState .big svg.i{width:26px; height:26px;}
+  #emptyState b{display:block; color:var(--text); font-size:15px; margin-bottom:2px;}
   #trackerArea{display:none;}
-  #kindToggle{display:grid; grid-template-columns:1fr 1fr; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:4px; margin-top:10px;}
-  #kindToggle button{border:0; background:transparent; color:var(--sub); font:inherit; font-weight:700; font-size:14px; padding:11px; border-radius:10px; cursor:pointer;}
-  #kindToggle button.on{color:#0b1214;}
-  #kindToggle button.on[data-k="lead"]{background:var(--lead);}
-  #kindToggle button.on[data-k="walkin"]{background:var(--walk);}
-  #statusCard{margin-top:12px; border:1px solid var(--line); border-radius:12px; padding:11px 14px; font-size:13px; display:flex; gap:10px; align-items:center; background:var(--panel);}
-  #statusCard .dot{width:9px; height:9px; border-radius:50%; flex:none; background:var(--sub);}
-  #statusCard.s-ok .dot{background:var(--ok);} #statusCard.s-warn .dot{background:var(--warn);} #statusCard.s-bad .dot{background:var(--danger);}
+
+  /* ---------- segmented ---------- */
+  #kindToggle{display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:4px; border-radius:14px;
+    background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow);}
+  #kindToggle button{display:flex; align-items:center; justify-content:center; gap:8px; border:0; background:transparent; color:var(--muted);
+    font:600 14px Inter,system-ui,sans-serif; padding:11px; border-radius:10px; cursor:pointer; transition:background .15s,color .15s;}
+  #kindToggle button svg.i{width:18px; height:18px;}
+  #kindToggle button.on{background:var(--brand); color:#fff; box-shadow:0 6px 16px -8px rgba(21,101,255,.7);}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative; overflow:hidden; margin-top:12px; border-radius:var(--radius); color:#fff; padding:18px 18px 16px;
+    background:linear-gradient(145deg,var(--navy-2) 0%,var(--brand) 120%); box-shadow:var(--shadow-lg);}
+  .hero::after{content:""; position:absolute; right:-60px; top:-70px; width:200px; height:200px; border-radius:50%;
+    background:radial-gradient(circle,rgba(255,255,255,.16),rgba(255,255,255,0) 70%); pointer-events:none;}
+  .hero .eyebrow{font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.78);}
+  .hero .top{display:flex; align-items:flex-end; justify-content:space-between; gap:10px;}
+  #sessionTotal{font-size:46px; font-weight:800; letter-spacing:-.03em; line-height:1.05; margin-top:4px;}
+  .hero .icon-btn{height:34px; font-size:12px;}
+  #statusCard{display:flex; align-items:center; gap:8px; margin-top:12px; padding:8px 12px; border-radius:999px; width:fit-content; max-width:100%;
+    background:rgba(255,255,255,.14); font-size:12.5px; line-height:1.35;}
+  #statusCard .dot{width:8px; height:8px; border-radius:50%; flex:none; background:rgba(255,255,255,.6);}
+  #statusCard.s-ok .dot{background:#34D399; box-shadow:0 0 0 3px rgba(52,211,153,.25);}
+  #statusCard.s-warn .dot{background:#FBBF24; box-shadow:0 0 0 3px rgba(251,191,36,.25);}
+  #statusCard.s-bad .dot{background:#F87171; box-shadow:0 0 0 3px rgba(248,113,113,.25);}
   #statusCard b{font-weight:700;}
-  #closedBanner{margin-top:12px; border:1px solid #3a3222; background:#221d14; color:var(--warn); border-radius:12px; padding:14px; font-size:14px; line-height:1.5;}
-  #sessionInfo{display:flex; justify-content:space-between; align-items:center; padding:14px 4px 6px;}
-  #sessionInfo .lbl{color:var(--sub); font-size:12px; letter-spacing:.04em;}
-  #sessionInfo .val{font-size:28px; font-weight:800; color:var(--accent2);}
-  #catGrid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px;}
-  .cat-btn{background:var(--panel); border:1px solid var(--line); border-bottom:4px solid var(--line); border-radius:var(--radius); padding:16px 14px; text-align:left; cursor:pointer; position:relative; overflow:hidden; user-select:none; transition:transform .08s ease;}
-  .cat-btn:active{transform:translateY(3px); border-bottom-width:1px;}
-  .cat-btn .bar{position:absolute; left:0; top:0; bottom:0; width:4px;}
-  .cat-btn .emo{font-size:21px;}
-  .cat-btn .name{font-size:13px; color:var(--sub); margin-top:6px;}
-  .cat-btn .count{font-size:30px; font-weight:800; margin-top:2px;}
-  .c-phone .bar{background:var(--phone);} .c-repair .bar{background:var(--repair);} .c-cc .bar{background:var(--cc);} .c-others .bar{background:var(--others);}
-  .btn{border:1px solid var(--line); border-bottom:4px solid var(--line); background:var(--panel2); color:var(--text); border-radius:12px; padding:13px 10px; font:inherit; font-size:13px; font-weight:700; cursor:pointer; text-align:center; transition:transform .08s ease;}
-  .btn:active{transform:translateY(3px); border-bottom-width:1px;}
-  .btn.primary{background:var(--accent); border-color:var(--accent); border-bottom-color:var(--accent-dark); color:#111;}
-  .btn.big{width:100%; font-size:15px; padding:16px; margin-top:16px;}
-  .btn.ghost{color:var(--sub);}
-  .btn.danger{color:var(--danger); border-color:#3a2226; background:#2a1416;}
+  #closedBanner{margin-top:12px; display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border-radius:var(--radius);
+    background:var(--warn-bg); color:var(--warn); font-size:13.5px; line-height:1.5; border:1px solid color-mix(in srgb,var(--warn) 25%,transparent);}
+  #closedBanner b{display:block; font-size:14px;}
+
+  /* ---------- category cards ---------- */
+  h2{font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:20px 4px 10px;}
+  #catGrid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .cat-btn{position:relative; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:14px 14px 12px; cursor:pointer; user-select:none; -webkit-user-select:none; transition:transform .12s,box-shadow .12s; min-width:0;}
+  .cat-btn:active{transform:scale(.97); box-shadow:none;}
+  .cat-btn .h{display:flex; align-items:center; gap:10px;}
+  .cat-btn .ic{width:34px; height:34px; border-radius:10px; display:grid; place-items:center; flex:none;}
+  .cat-btn .ic svg.i{width:18px; height:18px;}
+  .cat-btn .name{font-size:13px; font-weight:600; color:var(--text-2); line-height:1.2;}
+  .cat-btn .count{font-size:34px; font-weight:800; letter-spacing:-.03em; line-height:1.05; margin-top:14px;}
+  .cat-btn .plus{position:absolute; right:12px; bottom:12px; width:28px; height:28px; border-radius:999px; display:grid; place-items:center;
+    background:var(--surface-2); color:var(--muted);}
+  .cat-btn .plus svg.i{width:15px; height:15px;}
+  .cat-btn.bump .count{animation:bump .22s ease;}
+  @keyframes bump{50%{transform:scale(1.12);}}
+  .c-phone .ic{background:var(--c-phone-bg); color:var(--c-phone);}
+  .c-repair .ic{background:var(--c-repair-bg); color:var(--c-repair);}
+  .c-cc .ic{background:var(--c-cc-bg); color:var(--c-cc);}
+  .c-others .ic{background:var(--c-others-bg); color:var(--c-others);}
+
+  /* ---------- buttons ---------- */
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--line); background:var(--surface); color:var(--text);
+    border-radius:14px; padding:13px 12px; font:600 13.5px Inter,system-ui,sans-serif; cursor:pointer; box-shadow:var(--shadow); transition:transform .1s;}
+  .btn:active{transform:scale(.98);}
+  .btn svg.i{width:18px; height:18px;}
+  .btn.primary{background:var(--brand); border-color:var(--brand); color:#fff; box-shadow:0 10px 24px -12px rgba(21,101,255,.8);}
+  .btn.big{width:100%; font-size:15px; padding:16px; margin-top:16px; border-radius:16px;}
+  .btn.ghost{color:var(--text-2);}
+  .btn.danger{background:var(--bad); border-color:var(--bad); color:#fff; box-shadow:none;}
   .btn[disabled]{opacity:.45; pointer-events:none;}
-  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px;}
   .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;}
-  #toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); background:var(--panel2); border:1px solid var(--line); padding:12px 18px; border-radius:12px; font-size:14px; opacity:0; pointer-events:none; transition:all .25s ease; z-index:100; max-width:90vw; text-align:center;}
+  .foot{text-align:center; font-size:11.5px; color:var(--muted); margin-top:20px;}
+
+  /* ---------- toast & sheets ---------- */
+  #toast{position:fixed; left:50%; bottom:calc(24px + var(--safe-b)); transform:translateX(-50%) translateY(20px); background:#0B1530; color:#fff;
+    padding:12px 18px; border-radius:12px; font-size:13.5px; font-weight:500; opacity:0; pointer-events:none; transition:all .25s ease; z-index:100;
+    max-width:90vw; text-align:center; box-shadow:var(--shadow-lg);}
   #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
-  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:flex-end; justify-content:center; z-index:50;}
+  .modal-overlay{position:fixed; inset:0; background:rgba(7,15,38,.55); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+    display:none; align-items:flex-end; justify-content:center; z-index:50;}
   .modal-overlay.show{display:flex;}
-  .modal{background:var(--panel); width:100%; max-width:480px; max-height:92vh; overflow:auto; border-radius:20px 20px 0 0; padding:20px 20px 28px; animation:up .2s ease;}
-  @keyframes up{from{transform:translateY(30px);opacity:0} to{transform:none;opacity:1}}
-  .modal h3{margin:0 0 4px; font-size:17px;}
-  .modal .hint{color:var(--sub); font-size:13px; line-height:1.45;}
-  .modal label{display:block; font-size:12px; color:var(--sub); margin:14px 0 6px; letter-spacing:.03em;}
-  .modal select,.modal input{width:100%; padding:12px; border-radius:10px; border:1px solid var(--line); background:var(--panel2); color:var(--text); font:inherit; font-size:16px;}
+  .modal{background:var(--surface); width:100%; max-width:520px; max-height:92vh; overflow:auto; border-radius:22px 22px 0 0;
+    padding:10px 20px calc(24px + var(--safe-b)); animation:up .22s ease; box-shadow:var(--shadow-lg);}
+  .modal::before{content:""; display:block; width:40px; height:4px; border-radius:4px; background:var(--line); margin:0 auto 14px;}
+  @keyframes up{from{transform:translateY(30px); opacity:0} to{transform:none; opacity:1}}
+  .modal h3{margin:0 0 4px; font-size:18px; font-weight:700; letter-spacing:-.01em;}
+  .modal .hint{color:var(--muted); font-size:13px; line-height:1.5;}
+  .modal label{display:block; font-size:11.5px; font-weight:600; color:var(--muted); margin:16px 0 6px; letter-spacing:.06em; text-transform:uppercase;}
+  .modal select,.modal input{width:100%; padding:13px 14px; border-radius:12px; border:1px solid var(--line); background:var(--surface-2); color:var(--text); font:500 16px Inter,system-ui,sans-serif;}
+  .modal select:focus,.modal input:focus{outline:2px solid var(--brand); outline-offset:-1px; background:var(--surface);}
   .modal-actions{display:flex; gap:10px; margin-top:20px;} .modal-actions .btn{flex:1;}
-  .rep{border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-top:12px;}
-  .rep h4{margin:0 0 6px; font-size:13px; display:flex; justify-content:space-between;}
-  .rep h4 .k-lead{color:var(--lead2);} .rep h4 .k-walkin{color:var(--walk2);}
-  .rep .r{display:flex; justify-content:space-between; font-size:14px; padding:3px 0; color:var(--sub);}
-  .rep .r b{color:var(--text);}
+  .rep{border:1px solid var(--line); background:var(--surface-2); border-radius:14px; padding:12px 14px; margin-top:12px;}
+  .rep h4{margin:0 0 6px; font-size:13px; font-weight:700; display:flex; justify-content:space-between; align-items:center;}
+  .rep h4 .k-lead,.rep h4 .k-walkin{color:var(--brand); display:flex; align-items:center; gap:6px;}
+  .rep h4 .tot{font-size:18px; font-weight:800; color:var(--text);}
+  .rep .r{display:flex; justify-content:space-between; align-items:center; font-size:13.5px; padding:4px 0; color:var(--text-2);}
+  .rep .r span{display:flex; align-items:center; gap:8px;}
+  .rep .r .d{width:8px; height:8px; border-radius:50%;}
+  .rep .r b{color:var(--text); font-weight:700;}
   .edit-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
-  .edit-grid .f span{display:block; font-size:12px; color:var(--sub); margin-bottom:4px;}
-  .edit-grid input{text-align:center; font-weight:700;}
-  .err{color:var(--danger); font-size:13px; margin-top:10px; min-height:1em;}
+  .edit-grid .f span{display:block; font-size:12px; color:var(--muted); margin-bottom:4px; font-weight:500;}
+  .edit-grid input{text-align:center; font-weight:700; background:var(--surface);}
+  .err{color:var(--bad); font-size:13px; font-weight:500; margin-top:10px; min-height:1em;}
   .tg-row .btn{font-size:13px;}
   .hidden{display:none !important;}
 </style>
@@ -93,44 +167,58 @@
 <body>
 
 <header>
-  <h1>KLIKI Outlet Tracker</h1>
-  <div class="tag" id="dateTag"></div>
+  <div class="wrap">
+    <div class="row">
+      <div>
+        <img class="logo" src="https://klikidotmy.github.io/kliki-marketing-dashboard/icons/logo-white.png" alt="KLIKI" width="98" height="28">
+        <div class="sub">Outlet Tracker · <span id="dateTag"></span></div>
+      </div>
+      <button class="icon-btn hidden" id="pinBtn" onclick="openPin()" aria-label="PIN"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>PIN</button>
+    </div>
+    <div class="sel-wrap">
+      <select id="outletSelect" onchange="selectOutlet(this.value)" aria-label="Outlet">
+        <option value="" disabled selected>Pilih outlet</option>
+      </select>
+    </div>
+  </div>
 </header>
 
-<div id="outletBar">
-  <div class="sel-wrap">
-    <select id="outletSelect" onchange="selectOutlet(this.value)">
-      <option value="" disabled selected>Pilih Outlet</option>
-    </select>
+<main class="wrap">
+  <div id="emptyState">
+    <div class="big"><svg class="i" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg></div>
+    <b>Pilih outlet untuk mula</b>Kiraan Leads &amp; Walk-in disimpan dalam phone ni dan dihantar ke sheet bila tutup kedai.
   </div>
-  <button class="btn ghost hidden" id="pinBtn" onclick="openPin()">🔒 PIN</button>
-</div>
-
-<main>
-  <div id="emptyState">Pilih outlet dahulu untuk mula track</div>
 
   <div id="trackerArea">
     <div id="kindToggle">
-      <button data-k="lead" onclick="setKind('lead')">💬 Leads</button>
-      <button data-k="walkin" onclick="setKind('walkin')">🚶 Walk-in</button>
+      <button data-k="lead" onclick="setKind('lead')"><svg class="i" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2a8.4 8.4 0 0 1 7.6-12.3 8.5 8.5 0 0 1 8.5 8z"/></svg>Leads</button>
+      <button data-k="walkin" onclick="setKind('walkin')"><svg class="i" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg>Walk-in</button>
     </div>
 
-    <div id="statusCard"><span class="dot"></span><span id="statusText">…</span></div>
     <div id="closedBanner" class="hidden"></div>
 
     <div id="counterArea">
-      <div id="sessionInfo">
-        <div><div class="lbl" id="sessionLbl">JUMLAH HARI INI</div><div class="val" id="sessionTotal">0</div></div>
-        <button class="btn ghost" onclick="openReset()" style="padding:8px 14px;font-size:12px;">🔄 Reset</button>
+      <div class="hero">
+        <div class="top">
+          <div>
+            <div class="eyebrow" id="sessionLbl">Leads hari ini</div>
+            <div id="sessionTotal">0</div>
+          </div>
+          <button class="icon-btn" onclick="openReset()" aria-label="Reset"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+        </div>
+        <div id="statusCard"><span class="dot"></span><span id="statusText">…</span></div>
       </div>
+
+      <h2>Tekan bila ada pelanggan</h2>
       <div id="catGrid"></div>
     </div>
 
-    <button class="btn primary big" id="submitBtn" onclick="openSubmit()">📤 Hantar Laporan Hari Ini</button>
+    <button class="btn primary big" id="submitBtn" onclick="openSubmit()"><svg class="i" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>Hantar Laporan Hari Ini</button>
     <div class="row2">
-      <button class="btn ghost" onclick="openSubtract()">➖ Tolak</button>
-      <button class="btn ghost" onclick="openEdit()">📅 Edit / Terlupa Hantar</button>
+      <button class="btn ghost" onclick="openSubtract()"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>Tolak</button>
+      <button class="btn ghost" onclick="openEdit()"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Edit / Terlupa</button>
     </div>
+    <div class="foot">Data disimpan ke sheet KLIKI · Laporan Telegram kekal</div>
   </div>
 </main>
 
@@ -141,7 +229,7 @@
   <div class="modal">
     <h3>Masuk PIN outlet</h3>
     <div class="hint" id="pinHint">PIN diberi oleh marketing. Sekali sahaja untuk phone ini.</div>
-    <label>NAMA PIC</label>
+    <label>Nama PIC</label>
     <input id="pinPic" autocomplete="name" placeholder="Nama penuh / panggilan" maxlength="40">
     <label>PIN</label>
     <input id="pinInput" type="password" inputmode="numeric" maxlength="8" autocomplete="off">
@@ -167,8 +255,8 @@
     <div id="smDone" class="hidden">
       <div class="hint" style="margin-top:14px;">Tekan butang bawah untuk copy laporan &amp; buka Telegram, kemudian paste dalam group.</div>
       <div class="row2 tg-row">
-        <button class="btn" onclick="sendTelegram('lead')">💬 Leads → Telegram</button>
-        <button class="btn" onclick="sendTelegram('walkin')">🚶 Walk-in → Telegram</button>
+        <button class="btn" onclick="sendTelegram('lead')"><svg class="i" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>Leads</button>
+        <button class="btn" onclick="sendTelegram('walkin')"><svg class="i" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>Walk-in</button>
       </div>
       <button class="btn ghost big" style="margin-top:10px;" onclick="closeModal('submitModal')">Tutup</button>
     </div>
@@ -180,7 +268,7 @@
   <div class="modal">
     <h3>Edit / terlupa hantar</h3>
     <div class="hint">Pilih tarikh, betulkan nombor penuh untuk hari tu, kemudian hantar. Nombor baru <b>ganti</b> yang lama, bukan tambah.</div>
-    <label>TARIKH</label>
+    <label>Tarikh</label>
     <input type="date" id="edDate" onchange="loadEditDate()">
     <div id="edLoad" class="hint" style="margin-top:8px;"></div>
     <div id="edForm"></div>
@@ -197,9 +285,9 @@
   <div class="modal">
     <h3>Tolak kiraan</h3>
     <div class="hint" id="subHint"></div>
-    <label>KATEGORI</label>
+    <label>Kategori</label>
     <select id="subCategory"></select>
-    <label>JUMLAH TOLAK</label>
+    <label>Jumlah tolak</label>
     <input type="number" id="subAmount" min="1" value="1" inputmode="numeric">
     <div class="modal-actions">
       <button class="btn ghost" onclick="closeModal('subtractModal')">Batal</button>
@@ -235,9 +323,13 @@ const OUTLETS = {
   KLL: { name:"Kelang Lama",   emoji:"🏙️", closed:[],  cats:["phone","repair","cc","others"] },
 };
 const CAT = {
-  phone:{emoji:"📱", label:"Phone"}, repair:{emoji:"🔧", label:"Repair"},
-  cc:{emoji:"💰", label:"Cash Converter"}, others:{emoji:"📋", label:"Others"},
+  phone:{emoji:"📱", label:"Phone", ic:'<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/>'},
+  repair:{emoji:"🔧", label:"Repair", ic:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/>'},
+  cc:{emoji:"💰", label:"Cash Converter", ic:'<path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>'},
+  others:{emoji:"📋", label:"Others", ic:'<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>'},
 };
+const svg = (d,cls="i") => `<svg class="${cls}" viewBox="0 0 24 24">${d}</svg>`;
+const DOT = {phone:"var(--c-phone)", repair:"var(--c-repair)", cc:"var(--c-cc)", others:"var(--c-others)"};
 const KIND = { lead:{label:"Leads", title:"LEADS"}, walkin:{label:"Walk-in", title:"WALK-IN"} };
 const ALLC = ["phone","repair","cc","others"];
 
@@ -301,7 +393,7 @@ const isNetErr = e => e instanceof TypeError || /HTTP 5|Failed to fetch|NetworkE
 
 /* ================= OUTLET ================= */
 const sel = document.getElementById("outletSelect");
-Object.entries(OUTLETS).forEach(([k,o])=>{ const op=document.createElement("option"); op.value=k; op.textContent=o.emoji+" "+o.name; sel.appendChild(op); });
+Object.entries(OUTLETS).forEach(([k,o])=>{ const op=document.createElement("option"); op.value=k; op.textContent=o.name; sel.appendChild(op); });
 
 function selectOutlet(o){
   outlet = o; S.lastOutlet = o; save(); sel.value = o;
@@ -328,14 +420,15 @@ function render(){
   banner.classList.toggle("hidden", !closed);
   document.getElementById("counterArea").classList.toggle("hidden", closed);
   document.getElementById("submitBtn").disabled = closed;
-  if(closed) banner.innerHTML = "🛑 <b>"+def.name+" tutup hari ini.</b><br>Lead yang masuk hari ini dikira dalam laporan hari bekerja seterusnya. Tak perlu hantar laporan hari ini.";
-  document.getElementById("sessionLbl").textContent = KIND[kind].title + " HARI INI";
+  if(closed) banner.innerHTML = svg('<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>')+"<div><b>"+def.name+" tutup hari ini</b>Lead yang masuk hari ini dikira dalam laporan hari bekerja seterusnya. Tak perlu hantar laporan hari ini.</div>";
+  document.getElementById("sessionLbl").textContent = KIND[kind].label + " hari ini";
   document.getElementById("sessionTotal").textContent = total(v);
   const grid = document.getElementById("catGrid"); grid.innerHTML = "";
   def.cats.forEach(c=>{
     const b = document.createElement("div"); b.className="cat-btn c-"+c;
-    b.innerHTML = `<div class="bar"></div><div class="emo">${CAT[c].emoji}</div><div class="name">${CAT[c].label}</div><div class="count">${v[c]||0}</div>`;
+    b.innerHTML = `<div class="h"><div class="ic">${svg(CAT[c].ic)}</div><div class="name">${CAT[c].label}</div></div><div class="count">${v[c]||0}</div><div class="plus">${svg('<path d="M12 5v14M5 12h14"/>')}</div>`;
     b.onclick = ()=>tap(c); grid.appendChild(b);
+    if(c===lastTap){ b.classList.add("bump"); lastTap=null; }
   });
   renderStatus();
 }
@@ -368,7 +461,9 @@ async function fetchServerStatus(){
 }
 
 /* ================= COUNTER ================= */
+let lastTap=null;
 function tap(c){
+  lastTap=c;
   const d=todayStr(), v=getCounts(outlet,d,kind); v[c]=(v[c]||0)+1; setCounts(outlet,d,kind,v);
   if(navigator.vibrate) navigator.vibrate(15);
   render();
@@ -376,7 +471,7 @@ function tap(c){
 function openSubtract(){
   const def=OUTLETS[outlet];
   document.getElementById("subHint").textContent = "Kurangkan kiraan "+KIND[kind].label+" hari ini.";
-  document.getElementById("subCategory").innerHTML = def.cats.map(c=>`<option value="${c}">${CAT[c].emoji} ${CAT[c].label}</option>`).join("");
+  document.getElementById("subCategory").innerHTML = def.cats.map(c=>`<option value="${c}">${CAT[c].label}</option>`).join("");
   document.getElementById("subAmount").value = 1;
   show("subtractModal");
 }
@@ -417,8 +512,8 @@ function repHTML(o,d,editable){
   const def=OUTLETS[o];
   return ["lead","walkin"].map(k=>{
     const v=getCounts(o,d,k);
-    return `<div class="rep"><h4><span class="k-${k}">${KIND[k].label}</span><span>${total(v)}</span></h4>`+
-      def.cats.map(c=>`<div class="r"><span>${CAT[c].emoji} ${CAT[c].label}</span><b>${v[c]||0}</b></div>`).join("")+`</div>`;
+    return `<div class="rep"><h4><span class="k-${k}">${KIND[k].label}</span><span class="tot">${total(v)}</span></h4>`+
+      def.cats.map(c=>`<div class="r"><span><i class="d" style="background:${DOT[c]}"></i>${CAT[c].label}</span><b>${v[c]||0}</b></div>`).join("")+`</div>`;
   }).join("");
 }
 function openSubmit(){
@@ -543,7 +638,7 @@ async function loadEditDate(){
   form.innerHTML = ["lead","walkin"].map(k=>{
     const v=getCounts(outlet,d,k);
     return `<div class="rep"><h4><span class="k-${k}">${KIND[k].label}</span></h4><div class="edit-grid">`+
-      def.cats.map(c=>`<div class="f"><span>${CAT[c].emoji} ${CAT[c].label}</span><input type="number" min="0" inputmode="numeric" data-k="${k}" data-c="${c}" value="${v[c]||0}"></div>`).join("")+`</div></div>`;
+      def.cats.map(c=>`<div class="f"><span>${CAT[c].label}</span><input type="number" min="0" inputmode="numeric" data-k="${k}" data-c="${c}" value="${v[c]||0}"></div>`).join("")+`</div></div>`;
   }).join("");
   go.disabled=false;
 }
