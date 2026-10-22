@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f1115">
+<title>KLIKI Outlet Tracker</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="https://klikidotmy.github.io/kliki-marketing-dashboard/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
+    --text:#f2f3f5; --sub:#8b93a3;
+    --phone:#4d9dff; --repair:#ffcc4d; --cc:#5be08a; --others:#c98bff;
+    --danger:#ff5f5f; --ok:#5be08a; --warn:#ffb84d;
+    --lead:#17c3b2; --lead2:#6fe9db; --lead-dark:#0e7f74;
+    --walk:#ff8a3d; --walk2:#ffb572; --walk-dark:#b35d1f;
+    --accent:var(--lead); --accent2:var(--lead2); --accent-dark:var(--lead-dark);
+    --radius:16px;
+  }
+  body.k-walkin{--accent:var(--walk); --accent2:var(--walk2); --accent-dark:var(--walk-dark);}
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; padding-bottom:60px; min-height:100vh;}
+  header{padding:18px 18px 10px; position:sticky; top:0; z-index:10; background:linear-gradient(180deg,var(--bg) 75%,rgba(15,17,21,0));}
+  header h1{margin:0; font-size:19px; font-weight:800; letter-spacing:-0.02em;}
+  header .tag{color:var(--sub); font-size:13px; margin-top:2px;}
+  #outletBar{padding:6px 18px 4px; display:flex; gap:8px; align-items:center;}
+  .sel-wrap{position:relative; flex:1;}
+  .sel-wrap::after{content:"▾"; position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--sub); pointer-events:none;}
+  #outletSelect{width:100%; appearance:none; -webkit-appearance:none; background:var(--panel); border:1px solid var(--line); border-radius:14px; color:var(--text); font:inherit; font-size:16px; font-weight:700; padding:14px 40px 14px 14px;}
+  #pinBtn{font-size:12px; padding:10px 12px; white-space:nowrap;}
+  main{padding:6px 18px 0;}
+  #emptyState{margin-top:60px; text-align:center; color:var(--sub); font-size:15px; line-height:1.5;}
+  #trackerArea{display:none;}
+  #kindToggle{display:grid; grid-template-columns:1fr 1fr; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:4px; margin-top:10px;}
+  #kindToggle button{border:0; background:transparent; color:var(--sub); font:inherit; font-weight:700; font-size:14px; padding:11px; border-radius:10px; cursor:pointer;}
+  #kindToggle button.on{color:#0b1214;}
+  #kindToggle button.on[data-k="lead"]{background:var(--lead);}
+  #kindToggle button.on[data-k="walkin"]{background:var(--walk);}
+  #statusCard{margin-top:12px; border:1px solid var(--line); border-radius:12px; padding:11px 14px; font-size:13px; display:flex; gap:10px; align-items:center; background:var(--panel);}
+  #statusCard .dot{width:9px; height:9px; border-radius:50%; flex:none; background:var(--sub);}
+  #statusCard.s-ok .dot{background:var(--ok);} #statusCard.s-warn .dot{background:var(--warn);} #statusCard.s-bad .dot{background:var(--danger);}
+  #statusCard b{font-weight:700;}
+  #closedBanner{margin-top:12px; border:1px solid #3a3222; background:#221d14; color:var(--warn); border-radius:12px; padding:14px; font-size:14px; line-height:1.5;}
+  #sessionInfo{display:flex; justify-content:space-between; align-items:center; padding:14px 4px 6px;}
+  #sessionInfo .lbl{color:var(--sub); font-size:12px; letter-spacing:.04em;}
+  #sessionInfo .val{font-size:28px; font-weight:800; color:var(--accent2);}
+  #catGrid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px;}
+  .cat-btn{background:var(--panel); border:1px solid var(--line); border-bottom:4px solid var(--line); border-radius:var(--radius); padding:16px 14px; text-align:left; cursor:pointer; position:relative; overflow:hidden; user-select:none; transition:transform .08s ease;}
+  .cat-btn:active{transform:translateY(3px); border-bottom-width:1px;}
+  .cat-btn .bar{position:absolute; left:0; top:0; bottom:0; width:4px;}
+  .cat-btn .emo{font-size:21px;}
+  .cat-btn .name{font-size:13px; color:var(--sub); margin-top:6px;}
+  .cat-btn .count{font-size:30px; font-weight:800; margin-top:2px;}
+  .c-phone .bar{background:var(--phone);} .c-repair .bar{background:var(--repair);} .c-cc .bar{background:var(--cc);} .c-others .bar{background:var(--others);}
+  .btn{border:1px solid var(--line); border-bottom:4px solid var(--line); background:var(--panel2); color:var(--text); border-radius:12px; padding:13px 10px; font:inherit; font-size:13px; font-weight:700; cursor:pointer; text-align:center; transition:transform .08s ease;}
+  .btn:active{transform:translateY(3px); border-bottom-width:1px;}
+  .btn.primary{background:var(--accent); border-color:var(--accent); border-bottom-color:var(--accent-dark); color:#111;}
+  .btn.big{width:100%; font-size:15px; padding:16px; margin-top:16px;}
+  .btn.ghost{color:var(--sub);}
+  .btn.danger{color:var(--danger); border-color:#3a2226; background:#2a1416;}
+  .btn[disabled]{opacity:.45; pointer-events:none;}
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;}
+  #toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); background:var(--panel2); border:1px solid var(--line); padding:12px 18px; border-radius:12px; font-size:14px; opacity:0; pointer-events:none; transition:all .25s ease; z-index:100; max-width:90vw; text-align:center;}
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:flex-end; justify-content:center; z-index:50;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--panel); width:100%; max-width:480px; max-height:92vh; overflow:auto; border-radius:20px 20px 0 0; padding:20px 20px 28px; animation:up .2s ease;}
+  @keyframes up{from{transform:translateY(30px);opacity:0} to{transform:none;opacity:1}}
+  .modal h3{margin:0 0 4px; font-size:17px;}
+  .modal .hint{color:var(--sub); font-size:13px; line-height:1.45;}
+  .modal label{display:block; font-size:12px; color:var(--sub); margin:14px 0 6px; letter-spacing:.03em;}
+  .modal select,.modal input{width:100%; padding:12px; border-radius:10px; border:1px solid var(--line); background:var(--panel2); color:var(--text); font:inherit; font-size:16px;}
+  .modal-actions{display:flex; gap:10px; margin-top:20px;} .modal-actions .btn{flex:1;}
+  .rep{border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-top:12px;}
+  .rep h4{margin:0 0 6px; font-size:13px; display:flex; justify-content:space-between;}
+  .rep h4 .k-lead{color:var(--lead2);} .rep h4 .k-walkin{color:var(--walk2);}
+  .rep .r{display:flex; justify-content:space-between; font-size:14px; padding:3px 0; color:var(--sub);}
+  .rep .r b{color:var(--text);}
+  .edit-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .edit-grid .f span{display:block; font-size:12px; color:var(--sub); margin-bottom:4px;}
+  .edit-grid input{text-align:center; font-weight:700;}
+  .err{color:var(--danger); font-size:13px; margin-top:10px; min-height:1em;}
+  .tg-row .btn{font-size:13px;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>KLIKI Outlet Tracker</h1>
+  <div class="tag" id="dateTag"></div>
+</header>
+
+<div id="outletBar">
+  <div class="sel-wrap">
+    <select id="outletSelect" onchange="selectOutlet(this.value)">
+      <option value="" disabled selected>Pilih Outlet</option>
+    </select>
+  </div>
+  <button class="btn ghost hidden" id="pinBtn" onclick="openPin()">🔒 PIN</button>
+</div>
+
+<main>
+  <div id="emptyState">Pilih outlet dahulu untuk mula track</div>
+
+  <div id="trackerArea">
+    <div id="kindToggle">
+      <button data-k="lead" onclick="setKind('lead')">💬 Leads</button>
+      <button data-k="walkin" onclick="setKind('walkin')">🚶 Walk-in</button>
+    </div>
+
+    <div id="statusCard"><span class="dot"></span><span id="statusText">…</span></div>
+    <div id="closedBanner" class="hidden"></div>
+
+    <div id="counterArea">
+      <div id="sessionInfo">
+        <div><div class="lbl" id="sessionLbl">JUMLAH HARI INI</div><div class="val" id="sessionTotal">0</div></div>
+        <button class="btn ghost" onclick="openReset()" style="padding:8px 14px;font-size:12px;">🔄 Reset</button>
+      </div>
+      <div id="catGrid"></div>
+    </div>
+
+    <button class="btn primary big" id="submitBtn" onclick="openSubmit()">📤 Hantar Laporan Hari Ini</button>
+    <div class="row2">
+      <button class="btn ghost" onclick="openSubtract()">➖ Tolak</button>
+      <button class="btn ghost" onclick="openEdit()">📅 Edit / Terlupa Hantar</button>
+    </div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<!-- PIN -->
+<div class="modal-overlay" id="pinModal">
+  <div class="modal">
+    <h3>Masuk PIN outlet</h3>
+    <div class="hint" id="pinHint">PIN diberi oleh marketing. Sekali sahaja untuk phone ini.</div>
+    <label>NAMA PIC</label>
+    <input id="pinPic" autocomplete="name" placeholder="Nama penuh / panggilan" maxlength="40">
+    <label>PIN</label>
+    <input id="pinInput" type="password" inputmode="numeric" maxlength="8" autocomplete="off">
+    <div class="err" id="pinErr"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('pinModal')">Batal</button>
+      <button class="btn primary" id="pinGo" onclick="submitPin()">Sahkan</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMIT -->
+<div class="modal-overlay" id="submitModal">
+  <div class="modal">
+    <h3 id="smTitle">Hantar laporan</h3>
+    <div class="hint" id="smHint"></div>
+    <div id="smBody"></div>
+    <div class="err" id="smErr"></div>
+    <div class="modal-actions" id="smActions">
+      <button class="btn ghost" onclick="closeModal('submitModal')">Batal</button>
+      <button class="btn primary" id="smGo" onclick="doSubmit()">Hantar</button>
+    </div>
+    <div id="smDone" class="hidden">
+      <div class="hint" style="margin-top:14px;">Tekan butang bawah untuk copy laporan &amp; buka Telegram, kemudian paste dalam group.</div>
+      <div class="row2 tg-row">
+        <button class="btn" onclick="sendTelegram('lead')">💬 Leads → Telegram</button>
+        <button class="btn" onclick="sendTelegram('walkin')">🚶 Walk-in → Telegram</button>
+      </div>
+      <button class="btn ghost big" style="margin-top:10px;" onclick="closeModal('submitModal')">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>Edit / terlupa hantar</h3>
+    <div class="hint">Pilih tarikh, betulkan nombor penuh untuk hari tu, kemudian hantar. Nombor baru <b>ganti</b> yang lama, bukan tambah.</div>
+    <label>TARIKH</label>
+    <input type="date" id="edDate" onchange="loadEditDate()">
+    <div id="edLoad" class="hint" style="margin-top:8px;"></div>
+    <div id="edForm"></div>
+    <div class="err" id="edErr"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('editModal')">Batal</button>
+      <button class="btn primary" id="edGo" onclick="submitEdit()">Simpan &amp; Hantar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOLAK -->
+<div class="modal-overlay" id="subtractModal">
+  <div class="modal">
+    <h3>Tolak kiraan</h3>
+    <div class="hint" id="subHint"></div>
+    <label>KATEGORI</label>
+    <select id="subCategory"></select>
+    <label>JUMLAH TOLAK</label>
+    <input type="number" id="subAmount" min="1" value="1" inputmode="numeric">
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('subtractModal')">Batal</button>
+      <button class="btn danger" onclick="submitSubtract()">Tolak</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET -->
+<div class="modal-overlay" id="resetModal">
+  <div class="modal">
+    <h3>Reset kiraan</h3>
+    <div class="hint" id="resetHint"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('resetModal')">Batal</button>
+      <button class="btn danger" onclick="submitReset()">Ya, Reset</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+// URL Web App Apps Script (Deploy > Web app). Kosong = app jalan offline sahaja.
+const SCRIPT_URL = "";
+const START_DATE = "2026-10-23";
+const TELEGRAM = { lead:"https://t.me/c/1993509443/7940", walkin:"https://t.me/c/1993509443/7906" };
+const STORE_KEY = "kliki_tracker_v1";
+
+const OUTLETS = {
+  AOR: { name:"Alor Setar",    emoji:"🌙", closed:[3], cats:["phone","repair","cc","others"] },
+  SP:  { name:"Sungai Petani", emoji:"🌊", closed:[3], cats:["phone","repair","cc","others"] },
+  PDG: { name:"Pendang",       emoji:"🌿", closed:[3], cats:["phone","cc","others"] },
+  KLL: { name:"Kelang Lama",   emoji:"🏙️", closed:[],  cats:["phone","repair","cc","others"] },
+};
+const CAT = {
+  phone:{emoji:"📱", label:"Phone"}, repair:{emoji:"🔧", label:"Repair"},
+  cc:{emoji:"💰", label:"Cash Converter"}, others:{emoji:"📋", label:"Others"},
+};
+const KIND = { lead:{label:"Leads", title:"LEADS"}, walkin:{label:"Walk-in", title:"WALK-IN"} };
+const ALLC = ["phone","repair","cc","others"];
+
+/* ================= STORE ================= */
+// store = { counts: {"AOR|2026-10-23|lead": {phone..}}, sent: {"AOR|2026-10-23": {at,pic,sig}}, queue:[payload], auth:{AOR:{pin,pic}}, device, lastOutlet, kind, migrated }
+function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }catch(e){ return {}; } }
+let S = load();
+S.counts = S.counts || {}; S.sent = S.sent || {}; S.queue = S.queue || []; S.auth = S.auth || {};
+if(!S.device) S.device = "d" + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }catch(e){} }
+save();
+
+let outlet = null, kind = S.kind || "lead";
+
+/* ================= DATE ================= */
+function todayStr(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+const HARI=["Ahad","Isnin","Selasa","Rabu","Khamis","Jumaat","Sabtu"];
+const BULAN=["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
+function prettyDate(s){ const d=new Date(s+"T00:00:00"); return HARI[d.getDay()]+", "+d.getDate()+" "+BULAN[d.getMonth()]+" "+d.getFullYear(); }
+function isClosed(o, date){ return OUTLETS[o].closed.includes(new Date(date+"T00:00:00").getDay()); }
+function editDeadline(date){ let [y,m]=date.split("-").map(Number); m++; if(m>12){m=1;y++;} return y+"-"+String(m).padStart(2,"0")+"-07"; }
+document.getElementById("dateTag").textContent = prettyDate(todayStr());
+
+/* ================= COUNTS ================= */
+const ck = (o,d,k) => o+"|"+d+"|"+k;
+function getCounts(o,d,k){ return Object.assign({phone:0,repair:0,cc:0,others:0}, S.counts[ck(o,d,k)]||{}); }
+function setCounts(o,d,k,v){ S.counts[ck(o,d,k)] = v; save(); }
+const total = v => ALLC.reduce((a,c)=>a+(v[c]||0),0);
+function sig(o,d){ return JSON.stringify([getCounts(o,d,"lead"), getCounts(o,d,"walkin")]); }
+
+/* migrasi data app lama (walkintracker / leadstracker) kalau domain sama */
+(function migrate(){
+  if(S.migrated) return;
+  const map = {"Alor Setar":"AOR","Sungai Petani":"SP","Pendang":"PDG","Kelang Lama":"KLL","Lunas Kulim":"KLL"};
+  [["kliki_walkin_v2","walkin"],["kliki_leads_v1","lead"]].forEach(([key,k])=>{
+    let old; try{ old = JSON.parse(localStorage.getItem(key)||"{}"); }catch(e){ old={}; }
+    Object.entries(old).forEach(([rk,rec])=>{
+      const [name,date] = rk.split("|"); const o = map[name];
+      if(!o || !date || date < START_DATE || S.counts[ck(o,date,k)]) return;
+      const v={}; ALLC.forEach(c=>v[c]=(rec&&rec[c.charAt(0).toUpperCase()+c.slice(1)])||(rec&&rec[c.toUpperCase()])||0);
+      if(total(v)>0) S.counts[ck(o,date,k)] = v;
+    });
+    const last = localStorage.getItem(key+"_lastOutlet");
+    if(last && map[last] && !S.lastOutlet) S.lastOutlet = map[last];
+  });
+  S.migrated = true; save();
+})();
+
+/* ================= API ================= */
+async function api(payload){
+  const res = await fetch(SCRIPT_URL, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(payload) });
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  return res.json();
+}
+async function apiGet(params){
+  const res = await fetch(SCRIPT_URL + "?" + new URLSearchParams(params), { cache:"no-store" });
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  return res.json();
+}
+const isNetErr = e => e instanceof TypeError || /HTTP 5|Failed to fetch|NetworkError|Load failed/i.test(e.message||"");
+
+/* ================= OUTLET ================= */
+const sel = document.getElementById("outletSelect");
+Object.entries(OUTLETS).forEach(([k,o])=>{ const op=document.createElement("option"); op.value=k; op.textContent=o.emoji+" "+o.name; sel.appendChild(op); });
+
+function selectOutlet(o){
+  outlet = o; S.lastOutlet = o; save(); sel.value = o;
+  document.getElementById("emptyState").style.display="none";
+  document.getElementById("trackerArea").style.display="block";
+  document.getElementById("pinBtn").classList.remove("hidden");
+  setKind(kind);
+  fetchServerStatus();
+  if(SCRIPT_URL && !S.auth[o]) openPin();
+}
+function setKind(k){
+  kind = k; S.kind = k; save();
+  document.body.classList.toggle("k-walkin", k==="walkin");
+  document.querySelectorAll("#kindToggle button").forEach(b=>b.classList.toggle("on", b.dataset.k===k));
+  render();
+}
+
+/* ================= RENDER ================= */
+function render(){
+  if(!outlet) return;
+  const d = todayStr(), def = OUTLETS[outlet], v = getCounts(outlet,d,kind);
+  const closed = isClosed(outlet,d);
+  const banner = document.getElementById("closedBanner");
+  banner.classList.toggle("hidden", !closed);
+  document.getElementById("counterArea").classList.toggle("hidden", closed);
+  document.getElementById("submitBtn").disabled = closed;
+  if(closed) banner.innerHTML = "🛑 <b>"+def.name+" tutup hari ini.</b><br>Lead yang masuk hari ini dikira dalam laporan hari bekerja seterusnya. Tak perlu hantar laporan hari ini.";
+  document.getElementById("sessionLbl").textContent = KIND[kind].title + " HARI INI";
+  document.getElementById("sessionTotal").textContent = total(v);
+  const grid = document.getElementById("catGrid"); grid.innerHTML = "";
+  def.cats.forEach(c=>{
+    const b = document.createElement("div"); b.className="cat-btn c-"+c;
+    b.innerHTML = `<div class="bar"></div><div class="emo">${CAT[c].emoji}</div><div class="name">${CAT[c].label}</div><div class="count">${v[c]||0}</div>`;
+    b.onclick = ()=>tap(c); grid.appendChild(b);
+  });
+  renderStatus();
+}
+
+let serverToday = null; // {lead:{...,pic,updated_at}, walkin:{...}}
+function renderStatus(){
+  const card = document.getElementById("statusCard"), t = document.getElementById("statusText");
+  const d = todayStr(), key = outlet+"|"+d, sent = S.sent[key];
+  const queued = S.queue.some(p=>p.outlet===outlet && p.date===d);
+  card.className = "";
+  if(!SCRIPT_URL){ card.className="s-warn"; t.innerHTML="Mod offline: sheet belum disambung. Guna Copy ke Telegram macam biasa."; return; }
+  if(queued){ card.className="s-warn"; t.innerHTML="<b>Menunggu internet.</b> Laporan akan dihantar automatik."; return; }
+  if(sent){
+    if(sent.sig !== sig(outlet,d)){ card.className="s-warn"; t.innerHTML="<b>Ada perubahan</b> selepas hantar jam "+sent.at.slice(11,16)+". Hantar semula."; }
+    else { card.className="s-ok"; t.innerHTML="<b>Dah dihantar</b> jam "+sent.at.slice(11,16)+" oleh "+esc(sent.pic)+" ✓"; }
+    return;
+  }
+  const sv = serverToday && (serverToday.lead || serverToday.walkin);
+  if(sv){ card.className="s-ok"; t.innerHTML="<b>Dah dihantar</b> dari phone lain jam "+String(sv.updated_at).slice(11,16)+" oleh "+esc(sv.pic)+"."; return; }
+  card.className = isClosed(outlet,d) ? "" : "s-bad";
+  t.innerHTML = isClosed(outlet,d) ? "Hari tutup." : "<b>Belum hantar</b> laporan hari ini.";
+}
+async function fetchServerStatus(){
+  if(!SCRIPT_URL || !outlet) return;
+  const o = outlet, d = todayStr();
+  try{
+    const r = await apiGet({action:"entries", outlet:o, from:d});
+    if(r.ok && o===outlet){ serverToday = {}; r.rows.filter(x=>x.date===d).forEach(x=>serverToday[x.kind]=x); renderStatus(); }
+  }catch(e){}
+}
+
+/* ================= COUNTER ================= */
+function tap(c){
+  const d=todayStr(), v=getCounts(outlet,d,kind); v[c]=(v[c]||0)+1; setCounts(outlet,d,kind,v);
+  if(navigator.vibrate) navigator.vibrate(15);
+  render();
+}
+function openSubtract(){
+  const def=OUTLETS[outlet];
+  document.getElementById("subHint").textContent = "Kurangkan kiraan "+KIND[kind].label+" hari ini.";
+  document.getElementById("subCategory").innerHTML = def.cats.map(c=>`<option value="${c}">${CAT[c].emoji} ${CAT[c].label}</option>`).join("");
+  document.getElementById("subAmount").value = 1;
+  show("subtractModal");
+}
+function submitSubtract(){
+  const c=document.getElementById("subCategory").value, n=parseInt(document.getElementById("subAmount").value,10)||0;
+  if(n<=0) return; closeModal("subtractModal");
+  const d=todayStr(), v=getCounts(outlet,d,kind); v[c]=Math.max(0,(v[c]||0)-n); setCounts(outlet,d,kind,v);
+  render(); toast("Ditolak "+n+" dari "+CAT[c].label);
+}
+function openReset(){ document.getElementById("resetHint").textContent="Reset semua kiraan "+KIND[kind].label+" hari ini untuk "+OUTLETS[outlet].name+"?"; show("resetModal"); }
+function submitReset(){ closeModal("resetModal"); setCounts(outlet,todayStr(),kind,{phone:0,repair:0,cc:0,others:0}); render(); toast("Direset"); }
+
+/* ================= PIN ================= */
+function openPin(){
+  const a = S.auth[outlet] || {};
+  document.getElementById("pinHint").textContent = "PIN "+OUTLETS[outlet].name+" (dari marketing). Sekali sahaja untuk phone ini.";
+  document.getElementById("pinPic").value = a.pic || S.lastPic || "";
+  document.getElementById("pinInput").value = "";
+  document.getElementById("pinErr").textContent = "";
+  show("pinModal");
+}
+async function submitPin(){
+  const pic=document.getElementById("pinPic").value.trim(), pin=document.getElementById("pinInput").value.trim(), err=document.getElementById("pinErr");
+  if(!pic){ err.textContent="Isi nama PIC."; return; }
+  if(!pin){ err.textContent="Isi PIN."; return; }
+  if(!SCRIPT_URL){ S.auth[outlet]={pin,pic}; S.lastPic=pic; save(); closeModal("pinModal"); return; }
+  const btn=document.getElementById("pinGo"); btn.disabled=true; err.textContent="Menyemak…";
+  try{
+    const r = await api({action:"login", outlet, pin});
+    if(!r.ok){ err.textContent = r.error || "Gagal"; return; }
+    S.auth[outlet]={pin,pic}; S.lastPic=pic; save(); closeModal("pinModal"); toast("PIN disahkan ✓");
+  }catch(e){ err.textContent = "Tiada internet. Cuba lagi bila ada line."; }
+  finally{ btn.disabled=false; }
+}
+
+/* ================= SUBMIT ================= */
+function repHTML(o,d,editable){
+  const def=OUTLETS[o];
+  return ["lead","walkin"].map(k=>{
+    const v=getCounts(o,d,k);
+    return `<div class="rep"><h4><span class="k-${k}">${KIND[k].label}</span><span>${total(v)}</span></h4>`+
+      def.cats.map(c=>`<div class="r"><span>${CAT[c].emoji} ${CAT[c].label}</span><b>${v[c]||0}</b></div>`).join("")+`</div>`;
+  }).join("");
+}
+function openSubmit(){
+  const d=todayStr();
+  document.getElementById("smTitle").textContent="Hantar laporan "+OUTLETS[outlet].name;
+  document.getElementById("smHint").textContent=prettyDate(d)+". Semak nombor Leads & Walk-in. Hantar semula akan ganti nombor sebelum ni.";
+  document.getElementById("smBody").innerHTML=repHTML(outlet,d);
+  document.getElementById("smErr").textContent="";
+  document.getElementById("smActions").classList.remove("hidden");
+  document.getElementById("smDone").classList.add("hidden");
+  reportDate = d;
+  show("submitModal");
+}
+let reportDate = null;
+async function doSubmit(){ await sendReport(outlet, todayStr(), "smErr", "smGo", ()=>{
+  document.getElementById("smActions").classList.add("hidden");
+  document.getElementById("smDone").classList.remove("hidden");
+}); }
+
+async function sendReport(o, d, errId, btnId, onDone){
+  const err=document.getElementById(errId), btn=document.getElementById(btnId);
+  const auth=S.auth[o];
+  if(!SCRIPT_URL){ err.textContent=""; onDone(); return; }
+  if(!auth){ closeModal("submitModal"); closeModal("editModal"); openPin(); toast("Masuk PIN dulu"); return; }
+  const payload = { action:"submit", outlet:o, date:d, pin:auth.pin, pic:auth.pic, device:S.device,
+    lead:getCounts(o,d,"lead"), walkin:getCounts(o,d,"walkin") };
+  const snap = sig(o,d);
+  btn.disabled=true; err.textContent="Menghantar…";
+  try{
+    const r = await api(payload);
+    if(!r.ok){
+      err.textContent = r.error || "Gagal";
+      if(r.code==="PIN"){ delete S.auth[o]; save(); }
+      return;
+    }
+    S.sent[o+"|"+d] = { at:r.at, pic:auth.pic, sig:snap };
+    S.queue = S.queue.filter(p=>!(p.outlet===o && p.date===d)); save();
+    err.textContent=""; toast("Disimpan ke sheet ✓"); onDone();
+  }catch(e){
+    if(isNetErr(e)){
+      S.queue = S.queue.filter(p=>!(p.outlet===o && p.date===d)); S.queue.push(Object.assign(payload,{sig:snap})); save();
+      err.textContent=""; toast("Tiada internet. Akan hantar automatik."); onDone();
+    } else err.textContent = e.message;
+  }finally{ btn.disabled=false; render(); }
+}
+
+let flushing=false;
+async function flushQueue(){
+  if(!SCRIPT_URL || flushing || !S.queue.length || !navigator.onLine) return;
+  flushing=true;
+  for(const p of S.queue.slice()){
+    try{
+      const {sig:snap, ...body} = p;
+      const r = await api(body);
+      S.queue = S.queue.filter(x=>x!==p);
+      if(r.ok){ S.sent[p.outlet+"|"+p.date]={at:r.at, pic:p.pic, sig:snap}; toast("Laporan "+p.date+" dah dihantar ✓"); }
+      else toast("Laporan "+p.date+" ditolak: "+(r.error||"ralat"));
+      save();
+    }catch(e){ break; }
+  }
+  flushing=false; render();
+}
+window.addEventListener("online", flushQueue);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden){ flushQueue(); fetchServerStatus(); render(); } });
+
+/* ================= TELEGRAM ================= */
+function reportText(k, o, d){
+  const def=OUTLETS[o], v=getCounts(o,d,k), sent=S.sent[o+"|"+d], auth=S.auth[o];
+  const lines=["📊 LAPORAN "+KIND[k].title+" : "+def.name, "📅 "+prettyDate(d)];
+  def.cats.forEach(c=>lines.push(CAT[c].emoji+" "+CAT[c].label+": "+(v[c]||0)));
+  lines.push("📈 JUMLAH: ("+total(v)+") "+KIND[k].label);
+  if(auth) lines.push("👤 PIC: "+auth.pic);
+  if(SCRIPT_URL) lines.push(sent && sent.sig===sig(o,d) ? "✅ Disimpan ke sheet" : "⏳ Belum masuk sheet");
+  return lines.join("\n");
+}
+function sendTelegram(k){
+  const text = reportText(k, outlet, reportDate || todayStr());
+  copyText(text);
+  window.open(TELEGRAM[k], "_blank", "noopener,noreferrer");
+}
+function copyText(text){
+  const fallback=()=>{ const ta=document.createElement("textarea"); ta.value=text; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy");}catch(e){} ta.remove(); };
+  if(navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).catch(fallback); else fallback();
+  toast("Laporan disalin ✓ Paste dalam Telegram");
+}
+
+/* ================= EDIT ================= */
+function openEdit(){
+  const d=todayStr(), inp=document.getElementById("edDate");
+  inp.max=d; inp.min=START_DATE; inp.value=d;
+  document.getElementById("edErr").textContent="";
+  show("editModal"); loadEditDate();
+}
+async function loadEditDate(){
+  const d=document.getElementById("edDate").value, info=document.getElementById("edLoad"), form=document.getElementById("edForm"), go=document.getElementById("edGo");
+  document.getElementById("edErr").textContent=""; form.innerHTML=""; go.disabled=true;
+  if(!d) return;
+  if(d>todayStr()){ info.textContent="Tak boleh pilih tarikh akan datang."; return; }
+  if(d<START_DATE){ info.textContent="Data sebelum "+START_DATE+" dalam MASTER SHEET. Hubungi HOD Sales."; return; }
+  if(isClosed(outlet,d)){ info.textContent=OUTLETS[outlet].name+" tutup hari ni. Masukkan dalam hari bekerja seterusnya."; return; }
+  if(todayStr()>editDeadline(d)){ info.textContent="Data bulan ni dah dikunci (cutoff "+editDeadline(d)+")."; return; }
+  let src="phone ini";
+  const local = S.counts[ck(outlet,d,"lead")] || S.counts[ck(outlet,d,"walkin")];
+  if(SCRIPT_URL){
+    info.textContent="Memuat data dari sheet…";
+    try{
+      const r=await apiGet({action:"entries", outlet, from:d});
+      if(r.ok){
+        const rows=r.rows.filter(x=>x.date===d);
+        // nombor dalam sheet jadi asas kalau phone ini tak ada rekod atau dah sama dengan yang dihantar
+        const sent=S.sent[outlet+"|"+d];
+        if(rows.length && (!local || (sent && sent.sig===sig(outlet,d)))){
+          rows.forEach(x=>{ const v={}; ALLC.forEach(c=>v[c]=Number(x[c])||0); S.counts[ck(outlet,d,x.kind)]=v; });
+          save(); src="sheet (oleh "+rows[0].pic+")";
+        } else if(rows.length) src="phone ini (sheet ada versi lain oleh "+rows[0].pic+")";
+        else if(!local) src="kosong, belum pernah dihantar";
+      }
+    }catch(e){ src = local ? "phone ini (offline)" : "kosong (offline)"; }
+  } else if(!local) src="kosong";
+  info.textContent="Sumber nombor: "+src;
+  const def=OUTLETS[outlet];
+  form.innerHTML = ["lead","walkin"].map(k=>{
+    const v=getCounts(outlet,d,k);
+    return `<div class="rep"><h4><span class="k-${k}">${KIND[k].label}</span></h4><div class="edit-grid">`+
+      def.cats.map(c=>`<div class="f"><span>${CAT[c].emoji} ${CAT[c].label}</span><input type="number" min="0" inputmode="numeric" data-k="${k}" data-c="${c}" value="${v[c]||0}"></div>`).join("")+`</div></div>`;
+  }).join("");
+  go.disabled=false;
+}
+async function submitEdit(){
+  const d=document.getElementById("edDate").value, err=document.getElementById("edErr");
+  const vals={lead:{phone:0,repair:0,cc:0,others:0}, walkin:{phone:0,repair:0,cc:0,others:0}};
+  for(const i of document.querySelectorAll("#edForm input")){
+    const n=Number(i.value);
+    if(!Number.isInteger(n) || n<0){ err.textContent="Nombor mesti 0 atau lebih."; return; }
+    vals[i.dataset.k][i.dataset.c]=n;
+  }
+  setCounts(outlet,d,"lead",vals.lead); setCounts(outlet,d,"walkin",vals.walkin);
+  await sendReport(outlet, d, "edErr", "edGo", ()=>{
+    closeModal("editModal");
+    reportDate=d;
+    document.getElementById("smTitle").textContent="Laporan "+prettyDate(d);
+    document.getElementById("smHint").textContent="Dah disimpan. Hantar juga ke Telegram supaya group tahu ada pembetulan.";
+    document.getElementById("smBody").innerHTML=repHTML(outlet,d);
+    document.getElementById("smErr").textContent="";
+    document.getElementById("smActions").classList.add("hidden");
+    document.getElementById("smDone").classList.remove("hidden");
+    show("submitModal");
+  });
+}
+
+/* ================= UI UTIL ================= */
+function show(id){ document.getElementById(id).classList.add("show"); }
+function closeModal(id){ document.getElementById(id).classList.remove("show"); }
+document.querySelectorAll(".modal-overlay").forEach(m=>m.addEventListener("click",e=>{ if(e.target===m) closeModal(m.id); }));
+let tt=null;
+function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("show"),2800); }
+function esc(s){ return String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* tukar hari tanpa tutup app */
+let lastDay = todayStr();
+setInterval(()=>{ if(todayStr()!==lastDay){ lastDay=todayStr(); document.getElementById("dateTag").textContent=prettyDate(lastDay); serverToday=null; render(); fetchServerStatus(); } }, 60000);
+
+if(S.lastOutlet && OUTLETS[S.lastOutlet]) selectOutlet(S.lastOutlet);
+flushQueue();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
