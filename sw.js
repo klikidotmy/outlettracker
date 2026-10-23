@@ -1,5 +1,5 @@
 // App shell offline. Data (Apps Script) sentiasa terus ke network.
-const CACHE = 'kliki-tracker-v5';
+const CACHE = 'kliki-tracker-v6';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
