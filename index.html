@@ -10,6 +10,8 @@
 <meta name="apple-mobile-web-app-title" content="KLIKI Tracker">
 <title>KLIKI Outlet Tracker</title>
 <link rel="manifest" href="manifest.webmanifest">
+<!-- Target lead/walk-in: satu sumber dengan KLIKI Marketing Dashboard (window.KLIKI_CONFIG.targets.leadPlan) -->
+<script src="https://klikidotmy.github.io/kliki-marketing-dashboard/js/config.js" defer></script>
 <link rel="apple-touch-icon" href="https://klikidotmy.github.io/kliki-marketing-dashboard/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -73,7 +75,7 @@
   #trackerArea{display:none;}
 
   /* ---------- segmented ---------- */
-  #kindToggle{display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:4px; border-radius:14px;
+  #kindToggle{display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; padding:4px; border-radius:14px;
     background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow);}
   #kindToggle button{display:flex; align-items:center; justify-content:center; gap:8px; border:0; background:transparent; color:var(--muted);
     font:600 14px Inter,system-ui,sans-serif; padding:11px; border-radius:10px; cursor:pointer; transition:background .15s,color .15s;}
@@ -166,6 +168,42 @@
   .err{color:var(--bad); font-size:13px; font-weight:500; margin-top:10px; min-height:1em;}
   .tg-row .btn{font-size:13px;}
   .hidden{display:none !important;}
+
+  /* ---------- bulanan ---------- */
+  .mchips{display:flex; gap:6px; overflow-x:auto; margin-top:12px; padding-bottom:2px; scrollbar-width:none;}
+  .mchips::-webkit-scrollbar{display:none;}
+  .mchip{flex:none; border:1px solid var(--line); background:var(--surface); color:var(--text-2); font:600 13px Inter,system-ui,sans-serif;
+    padding:8px 14px; border-radius:999px; cursor:pointer;}
+  .mchip.on{background:var(--brand); border-color:var(--brand); color:#fff;}
+  .mcard{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; margin-top:12px;}
+  .mcard .hd{display:flex; justify-content:space-between; align-items:center; gap:8px;}
+  .mcard .ttl{font-size:13px; font-weight:700; color:var(--brand); display:flex; align-items:center; gap:6px;}
+  .mcard .ttl svg.i{width:16px; height:16px;}
+  .mcard .num{font-size:34px; font-weight:800; letter-spacing:-.03em; line-height:1.1; margin-top:6px;}
+  .mcard .num small{font-size:15px; font-weight:600; color:var(--muted); letter-spacing:0;}
+  .bar{position:relative; height:10px; border-radius:99px; background:var(--surface-2); margin-top:10px;}
+  .bar>i{display:block; height:100%; border-radius:99px; background:var(--brand); max-width:100%;}
+  .bar .pace{position:absolute; top:-4px; bottom:-4px; width:2px; margin-left:-1px; background:var(--text); opacity:.55; border-radius:2px;}
+  .bar.sm{height:6px; margin-top:6px;} .bar.sm .pace{top:-3px; bottom:-3px;}
+  .pill{display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; white-space:nowrap;}
+  .st-good{background:var(--good-bg); color:var(--good);} .st-bad{background:var(--bad-bg); color:var(--bad);} .st-na{background:var(--surface-2); color:var(--muted);}
+  .mline{font-size:13px; color:var(--text-2); margin-top:10px; line-height:1.45;}
+  .mline b{color:var(--text);}
+  .crow{margin-top:12px;}
+  .crow .t{display:flex; justify-content:space-between; font-size:13px; color:var(--text-2);}
+  .crow .t span{display:flex; align-items:center; gap:8px;} .crow .t b{color:var(--text);}
+  .crow .d{width:8px; height:8px; border-radius:50%;}
+  .mnote{font-size:12px; color:var(--muted); line-height:1.5; margin-top:10px;}
+  .mwarn{margin-top:12px; padding:12px 14px; border-radius:14px; background:var(--warn-bg); color:var(--warn); font-size:13px; line-height:1.5;}
+  .dtab{width:100%; border-collapse:collapse; font-size:13.5px;}
+  .dtab th{font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; text-align:right; padding:0 0 8px;}
+  .dtab th:first-child,.dtab td:first-child{text-align:left;}
+  .dtab td{padding:8px 0; border-top:1px solid var(--line); text-align:right; vertical-align:top;}
+  .dtab td b{font-weight:700; font-size:14.5px;} .dtab td small{display:block; font-size:11px; color:var(--muted);}
+  .dtab .src{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 6px; border-radius:6px; background:var(--surface-2); color:var(--muted);}
+  .dtab .src.app{background:var(--brand-soft); color:var(--brand);}
+  .dtab tr.miss td{color:var(--warn);}
+  .mload{padding:28px 0; text-align:center; color:var(--muted); font-size:13.5px;}
 </style>
 </head>
 <body>
@@ -197,6 +235,12 @@
     <div id="kindToggle">
       <button data-k="lead" onclick="setKind('lead')"><svg class="i" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2a8.4 8.4 0 0 1 7.6-12.3 8.5 8.5 0 0 1 8.5 8z"/></svg>Leads</button>
       <button data-k="walkin" onclick="setKind('walkin')"><svg class="i" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg>Walk-in</button>
+      <button data-k="month" onclick="setKind('month')"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Bulanan</button>
+    </div>
+
+    <div id="monthArea" class="hidden">
+      <div class="mchips" id="mChips"></div>
+      <div id="mBody"><div class="mload">Memuat…</div></div>
     </div>
 
     <div id="closedBanner" class="hidden"></div>
@@ -218,11 +262,11 @@
     </div>
 
     <button class="btn primary big" id="submitBtn" onclick="openSubmit()"><svg class="i" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>Hantar Laporan Hari Ini</button>
-    <div class="row2">
+    <div class="row2" id="actRow">
       <button class="btn ghost" onclick="openSubtract()"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>Tolak</button>
       <button class="btn ghost" onclick="openEdit()"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Edit / Terlupa</button>
     </div>
-    <div class="foot">Data disimpan ke sheet KLIKI · Laporan Telegram kekal</div>
+    <div class="foot" id="footNote">Data disimpan ke sheet KLIKI · Laporan Telegram kekal</div>
   </div>
 </main>
 
@@ -404,20 +448,28 @@ function selectOutlet(o){
   document.getElementById("emptyState").style.display="none";
   document.getElementById("trackerArea").style.display="block";
   document.getElementById("pinBtn").classList.remove("hidden");
-  setKind(kind);
+  setKind(view==="month" ? "month" : kind);
   fetchServerStatus();
   if(SCRIPT_URL && !S.auth[o]) openPin();
 }
+let view = S.view || "count"; // "count" | "month"
 function setKind(k){
-  kind = k; S.kind = k; save();
-  document.body.classList.toggle("k-walkin", k==="walkin");
-  document.querySelectorAll("#kindToggle button").forEach(b=>b.classList.toggle("on", b.dataset.k===k));
-  render();
+  if(k==="month"){ view="month"; }
+  else { view="count"; kind=k; S.kind=k; }
+  S.view=view; save();
+  document.body.classList.toggle("k-walkin", view==="count" && kind==="walkin");
+  document.querySelectorAll("#kindToggle button").forEach(b=>b.classList.toggle("on", view==="month" ? b.dataset.k==="month" : b.dataset.k===kind));
+  const isM = view==="month";
+  ["counterArea","submitBtn","actRow","footNote"].forEach(id=>document.getElementById(id).classList.toggle("hidden", isM));
+  document.getElementById("monthArea").classList.toggle("hidden", !isM);
+  if(isM){ document.getElementById("closedBanner").classList.add("hidden"); openMonth(); }
+  else render();
 }
 
 /* ================= RENDER ================= */
 function render(){
   if(!outlet) return;
+  if(view==="month"){ renderStatus(); return; }
   const d = todayStr(), def = OUTLETS[outlet], v = getCounts(outlet,d,kind);
   const closed = isClosed(outlet,d);
   const banner = document.getElementById("closedBanner");
@@ -439,6 +491,7 @@ function render(){
 
 let serverToday = null; // {lead:{...,pic,updated_at}, walkin:{...}}
 function renderStatus(){
+  if(view==="month") return;
   const card = document.getElementById("statusCard"), t = document.getElementById("statusText");
   const d = todayStr(), key = outlet+"|"+d, sent = S.sent[key];
   const queued = S.queue.some(p=>p.outlet===outlet && p.date===d);
@@ -554,6 +607,7 @@ async function sendReport(o, d, errId, btnId, onDone){
       return;
     }
     S.sent[o+"|"+d] = { at:r.at, pic:auth.pic, sig:snap };
+    delete liveCache[o+"|"+d.slice(0,7)];
     S.queue = S.queue.filter(p=>!(p.outlet===o && p.date===d)); save();
     err.textContent=""; toast("Disimpan ke sheet ✓"); onDone();
   }catch(e){
@@ -581,7 +635,7 @@ async function flushQueue(){
   flushing=false; render();
 }
 window.addEventListener("online", flushQueue);
-document.addEventListener("visibilitychange", ()=>{ if(!document.hidden){ flushQueue(); fetchServerStatus(); render(); } });
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden){ flushQueue(); fetchServerStatus(); render(); if(view==="month") openMonth(); } });
 
 /* ================= TELEGRAM ================= */
 function reportText(k, o, d){
@@ -667,6 +721,256 @@ async function submitEdit(){
     show("submitModal");
   });
 }
+
+/* ================= BULANAN ================= */
+// Sumber: sebelum START_DATE = mirror MASTER SHEET SALES OUTLET (sheet public, tanpa angka RM, sama dengan dashboard).
+// Dari START_DATE = sheet LIVE (app ini). Mirror dibaca terus setiap kali, jadi kalau HOD Sales lengkapkan
+// tarikh lama dalam MASTER, app ni ikut sendiri. Tiada data disalin ke LIVE sheet.
+const MIRROR_ID = "1Go5p9o2PE3xHZOhVmg1PZZZYKrqY7INaFiQ-28frz-w";
+const MIRROR_KEY = "kliki_tracker_mirror_v1";
+const MCATS = ["phone","repair","cc"]; // kategori target (Others tiada target)
+const MIRROR_COLS = {
+  AOR:[{ lead:["aor LEAD PHONE","aor LEAD REPAIR","aor LEAD CC"], walkin:["aor WALK IN PHONE","aor WALK IN REPAIR","aor WALK IN CC"] }],
+  SP: [{ lead:["sgp LEAD PHONE","sgp LEAD REPAIR","sgp LEAD CC"], walkin:["sgp WALK IN PHONE","sgp WALK IN REPAIR","sgp WALK IN CC"] }],
+  PDG:[{ lead:["pdg LEAD PHONE","pdg LEAD REPAIR","pdg LEAD CC"], walkin:["pdg WALK IN PHONE","pdg WALK IN REPAIR","pdg WALK IN CC"] }],
+  // Kulim tutup sementara, staf pindah ke Kelang Lama mulai 20/08/2026: dikira satu kedai
+  KLL:[
+    { until:"2026-08-19", lead:["kul LEAD PHONE","kul LEAD REPAIR","kul LEAD CC"], walkin:["kul WALK IN PHONE","kul WALK IN REPAIR","kul WALK IN CC"] },
+    { from:"2026-08-20", lead:["kll PHONE LEAD","kll REPAIR LEAD","kll CC LEAD"], walkin:["kll PHONE WALK IN PHONE","kll REPAIR WALK IN REPAIR","kll WALK IN CC"] },
+  ],
+};
+const PLAN_KEY = { AOR:"AOR", SP:"SP", PDG:"PDG", KLL:"KUL" }; // kunci outlet dalam config dashboard
+const BLN3 = ["Jan","Feb","Mac","Apr","Mei","Jun","Jul","Ogo","Sep","Okt","Nov","Dis"];
+const HR3 = ["Ahd","Isn","Sel","Rab","Kha","Jum","Sab"];
+
+let mirror = null, mirrorAt = null, mirrorErr = null, mirrorLoading = null;
+let mMonth = null; // "YYYY-MM"
+const liveCache = {}; // "AOR|2026-10" -> {at, rows}
+
+function parseCSV(t){
+  const rows=[]; let row=[], f="", q=false;
+  for(let i=0;i<t.length;i++){
+    const c=t[i];
+    if(q){ if(c==='"'){ if(t[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(f); f=""; }
+    else if(c==='\n'){ row.push(f); rows.push(row); row=[]; f=""; }
+    else if(c!=='\r') f+=c;
+  }
+  if(f!=="" || row.length){ row.push(f); rows.push(row); }
+  return rows;
+}
+const numOrNull = s => { s=String(s==null?"":s).replace(/,/g,"").trim(); if(s==="") return null; const n=Number(s); return isFinite(n)?n:null; };
+function isoFromDMY(s){
+  const m=String(s||"").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(!m) return null;
+  return m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");
+}
+// Hasil: { AOR: { "2026-10-01": {lead:{phone,repair,cc}, walkin:{...}} } }, sel kosong = null (bukan 0)
+function parseMirror(rows){
+  const norm = h => String(h||"").trim().replace(/\s+/g," ").toLowerCase();
+  const head = (rows[0]||[]).map(norm);
+  const col = n => { const i=head.indexOf(norm(n)); if(i<0) throw new Error('Kolum "'+n+'" tiada dalam MASTER'); return i; };
+  const plan = Object.entries(MIRROR_COLS).map(([o,spans])=>[o, spans.map(s=>({ from:s.from||"0000", until:s.until||"9999", lead:s.lead.map(col), walkin:s.walkin.map(col) }))]);
+  const out = {}; Object.keys(MIRROR_COLS).forEach(o=>out[o]={});
+  // simpan 13 bulan terakhir sahaja (cukup untuk banding, kecil untuk cache)
+  const cut = new Date(); cut.setMonth(cut.getMonth()-13);
+  const cutIso = cut.toISOString().slice(0,7)+"-01";
+  for(const r of rows.slice(1)){
+    const iso = isoFromDMY(r[0]); if(!iso || iso<cutIso) continue;
+    for(const [o,spans] of plan){
+      const sp = spans.find(x=>iso>=x.from && iso<=x.until); if(!sp) continue;
+      const v={lead:{},walkin:{}}; let any=false;
+      MCATS.forEach((c,i)=>{ v.lead[c]=numOrNull(r[sp.lead[i]]); v.walkin[c]=numOrNull(r[sp.walkin[i]]); if(v.lead[c]!=null||v.walkin[c]!=null) any=true; });
+      if(any) out[o][iso]=v;
+    }
+  }
+  return out;
+}
+function loadMirror(force){
+  if(mirrorLoading) return mirrorLoading;
+  if(mirror && !force && Date.now()-mirrorAt < 10*60000) return Promise.resolve(mirror);
+  if(!mirror){ try{ const c=JSON.parse(localStorage.getItem(MIRROR_KEY)); if(c&&c.data){ mirror=c.data; mirrorAt=c.at; } }catch(e){} }
+  const url = "https://docs.google.com/spreadsheets/d/"+MIRROR_ID+"/export?format=csv&gid=0&range=A1:AE2400";
+  mirrorLoading = fetch(url,{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(t=>{
+      if(/^\s*</.test(t)) throw new Error("MASTER tak boleh dibaca");
+      mirror = parseMirror(parseCSV(t)); mirrorAt = Date.now(); mirrorErr = null;
+      try{ localStorage.setItem(MIRROR_KEY, JSON.stringify({at:mirrorAt, data:mirror})); }catch(e){}
+      return mirror;
+    })
+    .catch(e=>{ mirrorErr = e.message||"ralat"; return mirror; })
+    .finally(()=>{ mirrorLoading=null; });
+  return mirrorLoading;
+}
+async function loadLive(o, ymKey){
+  const k=o+"|"+ymKey, c=liveCache[k];
+  if(!SCRIPT_URL) return {rows:[], ok:true};
+  if(c && Date.now()-c.at < 60000) return c;
+  const from = (ymKey+"-01") < START_DATE ? START_DATE : ymKey+"-01";
+  try{
+    const r = await apiGet({action:"entries", outlet:o, from});
+    if(!r.ok) throw new Error(r.error||"ralat");
+    return liveCache[k] = {at:Date.now(), ok:true, rows:(r.rows||[]).filter(x=>String(x.date).slice(0,7)===ymKey)};
+  }catch(e){ return c ? Object.assign({}, c, {stale:true}) : {rows:[], ok:false, err:e.message}; }
+}
+
+function monthPlan(o, y, m){
+  const lp = window.KLIKI_CONFIG && window.KLIKI_CONFIG.targets && window.KLIKI_CONFIG.targets.leadPlan;
+  if(!lp) return null;
+  const key = y+"-"+String(m).padStart(2,"0"), dk = PLAN_KEY[o];
+  let src = lp.months && lp.months[key] && lp.months[key][dk];
+  if(!src && lp.legacy && key <= lp.legacy.until) src = lp.legacy[dk];
+  if(!src) return null;
+  const f = a => ({phone:a[0]||0, repair:a[1]||0, cc:a[2]||0, total:a[3]!=null ? a[3] : (a[0]||0)+(a[1]||0)+(a[2]||0)});
+  return { lead:f(src.lead), walkin:f(src.walkin) };
+}
+const pad2 = n => String(n).padStart(2,"0");
+const fmtN = n => n==null ? "–" : Number(n).toLocaleString("en-MY");
+
+// Kumpul data harian sebulan untuk satu outlet
+function monthDays(o, ymKey, live){
+  const [y,m] = ymKey.split("-").map(Number), dim = new Date(y,m,0).getDate(), today = todayStr();
+  const liveBy = {}; (live.rows||[]).forEach(x=>{ (liveBy[x.date]=liveBy[x.date]||{})[x.kind]=x; });
+  const days = [];
+  for(let d=1; d<=dim; d++){
+    const iso = ymKey+"-"+pad2(d);
+    if(iso > today) break;
+    const day = { iso, closed:isClosed(o,iso), src:null, lead:null, walkin:null };
+    const z = () => ({phone:0,repair:0,cc:0,others:0});
+    if(iso < START_DATE){
+      const v = mirror && mirror[o] && mirror[o][iso];
+      if(v){ day.src="M"; ["lead","walkin"].forEach(k=>{ const t=z(); MCATS.forEach(c=>t[c]=v[k][c]||0); day[k]=t; }); }
+    } else {
+      const sv = liveBy[iso], localL = S.counts[ck(o,iso,"lead")], localW = S.counts[ck(o,iso,"walkin")];
+      const sent = S.sent[o+"|"+iso];
+      const useLocal = (localL||localW) && (iso===today || !sv || !sent || sent.sig!==sig(o,iso));
+      if(useLocal && total(getCounts(o,iso,"lead"))+total(getCounts(o,iso,"walkin"))>0){
+        day.src = iso===today ? "L" : "P"; // L = live hari ini, P = belum hantar
+        day.lead = getCounts(o,iso,"lead"); day.walkin = getCounts(o,iso,"walkin");
+      } else if(sv){
+        day.src = "A";
+        ["lead","walkin"].forEach(k=>{ const t=z(); if(sv[k]) ALLC.forEach(c=>t[c]=Number(sv[k][c])||0); day[k]=t; });
+      }
+    }
+    days.push(day);
+  }
+  return { y, m, dim, days };
+}
+function opDays(o, y, m){ let n=0; const dim=new Date(y,m,0).getDate(); for(let d=1; d<=dim; d++) if(!isClosed(o, y+"-"+pad2(m)+"-"+pad2(d))) n++; return n; }
+
+function monthChips(){
+  const now = new Date(todayStr()+"T00:00:00"), out=[];
+  for(let i=0;i<6;i++){ const d=new Date(now.getFullYear(), now.getMonth()-i, 1); out.push(d.getFullYear()+"-"+pad2(d.getMonth()+1)); }
+  if(!mMonth) mMonth = out[0];
+  document.getElementById("mChips").innerHTML = out.map(k=>{ const [y,m]=k.split("-").map(Number);
+    return `<button class="mchip${k===mMonth?" on":""}" onclick="pickMonth('${k}')">${BLN3[m-1]} ${String(y).slice(2)}</button>`; }).join("");
+}
+function pickMonth(k){ mMonth=k; openMonth(); }
+
+let monthReq = 0;
+async function openMonth(){
+  if(!outlet) return;
+  monthChips();
+  const req = ++monthReq, o = outlet, key = mMonth;
+  const body = document.getElementById("mBody");
+  const needM = (key+"-01") < START_DATE, needL = (key+"-31") >= START_DATE;
+  if(!(needM && !mirror)) renderMonth(o, key, {rows:[]}, true); else body.innerHTML = `<div class="mload">Memuat data ${BLN3[Number(key.slice(5))-1]}…</div>`;
+  const [ , live] = await Promise.all([ needM ? loadMirror() : null, needL ? loadLive(o,key) : {rows:[],ok:true} ]);
+  if(req!==monthReq || view!=="month" || o!==outlet) return;
+  renderMonth(o, key, live, false);
+}
+
+function statusOf(actual, target, pace){
+  if(target==null) return {cls:"st-na", txt:"Tiada target"};
+  if(actual>=target) return {cls:"st-good", txt:"Capai target"};
+  const exp = target*pace;
+  if(actual>=exp) return {cls:"st-good", txt:"Ikut pace"};
+  return {cls:"st-bad", txt:"Kurang "+fmtN(Math.ceil(exp-actual))};
+}
+
+function renderMonth(o, key, live, partial){
+  const def = OUTLETS[o], body = document.getElementById("mBody");
+  const M = monthDays(o, key, live), {y,m} = M, today = todayStr();
+  const plan = monthPlan(o, y, m), cfgOk = !!window.KLIKI_CONFIG;
+  const isCur = key===today.slice(0,7);
+  // pace ikut hari operasi outlet
+  const tot = opDays(o,y,m);
+  let done = tot, left = 0;
+  if(isCur){
+    const pastOp = M.days.filter(d=>d.iso<today && !d.closed).length;
+    const tday = M.days.find(d=>d.iso===today);
+    const todayIn = tday && !tday.closed && tday.src && (total(tday.lead)+total(tday.walkin))>0;
+    done = pastOp + (todayIn?1:0); left = Math.max(0, tot-done);
+  }
+  const pace = tot ? done/tot : 1;
+  const sums = {lead:{phone:0,repair:0,cc:0,others:0}, walkin:{phone:0,repair:0,cc:0,others:0}};
+  M.days.forEach(d=>["lead","walkin"].forEach(k=>{ if(d[k]) ALLC.forEach(c=>sums[k][c]+=d[k][c]||0); }));
+  const missing = M.days.filter(d=>!d.closed && !d.src && d.iso<today);
+  const pending = M.days.filter(d=>d.src==="P");
+
+  const icon = {lead:'<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2a8.4 8.4 0 0 1 7.6-12.3 8.5 8.5 0 0 1 8.5 8z"/>',
+    walkin:'<path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/>'};
+  const cats = MCATS.filter(c=>def.cats.includes(c));
+  let h = "";
+
+  ["lead","walkin"].forEach(k=>{
+    const a = cats.reduce((s,c)=>s+sums[k][c],0);
+    const t = plan ? plan[k].total : null;
+    const st = statusOf(a, t, pace);
+    const pct = t ? Math.round(a/t*100) : null;
+    h += `<div class="mcard"><div class="hd"><div class="ttl">${svg(icon[k])}${KIND[k].label}</div><span class="pill ${st.cls}">${st.txt}</span></div>`;
+    h += `<div class="num">${fmtN(a)} <small>${t!=null ? "/ "+fmtN(t)+" · "+pct+"%" : ""}</small></div>`;
+    if(t) h += `<div class="bar"><i style="width:${Math.min(100,a/t*100)}%"></i>${isCur?`<span class="pace" style="left:${pace*100}%"></span>`:""}</div>`;
+    if(t && isCur && left>0 && a<t) h += `<div class="mline">Perlu <b>${fmtN(Math.ceil((t-a)/left))} sehari</b> untuk ${left} hari operasi lagi.</div>`;
+    else if(t && isCur && a<t && left===0) h += `<div class="mline">Hari operasi bulan ni dah habis.</div>`;
+    cats.forEach(c=>{
+      const ca = sums[k][c], ct = plan ? plan[k][c] : null;
+      h += `<div class="crow"><div class="t"><span><i class="d" style="background:${DOT[c]}"></i>${CAT[c].label}</span><span><b>${fmtN(ca)}</b>${ct!=null?" / "+fmtN(ct):""}</span></div>`;
+      if(ct) h += `<div class="bar sm"><i style="width:${Math.min(100,ca/ct*100)}%; background:${DOT[c]}"></i>${isCur?`<span class="pace" style="left:${pace*100}%"></span>`:""}</div>`;
+      h += `</div>`;
+    });
+    const extra = [];
+    if(sums[k].others) extra.push("Others "+fmtN(sums[k].others)+" (tak dikira dalam target)");
+    if(!def.cats.includes("repair") && sums[k].repair) extra.push(fmtN(sums[k].repair)+" repair dalam MASTER tak dikira (outlet ni tiada servis repair)");
+    if(extra.length) h += `<div class="mnote">${extra.join(" · ")}</div>`;
+    h += `</div>`;
+  });
+
+  if(missing.length && !partial){
+    const list = missing.map(d=>Number(d.iso.slice(8))).join(", ");
+    h += `<div class="mwarn"><b>${missing.length} hari operasi tiada data</b> (${list} ${BLN3[m-1]}). `+
+      (missing.some(d=>d.iso<START_DATE) ? "Tarikh sebelum "+Number(START_DATE.slice(8))+"/"+Number(START_DATE.slice(5,7))+" kena dilengkapkan dalam MASTER SHEET oleh HOD Sales. " : "")+
+      (missing.some(d=>d.iso>=START_DATE) ? "Tarikh dari "+Number(START_DATE.slice(8))+"/"+Number(START_DATE.slice(5,7))+" boleh diisi guna Edit / Terlupa." : "")+`</div>`;
+  }
+  if(pending.length) h += `<div class="mwarn"><b>${pending.length} hari belum dihantar ke sheet</b> dari phone ni. Buka Edit / Terlupa dan hantar.</div>`;
+
+  // senarai harian
+  const rows = M.days.slice().reverse().filter(d=>d.src || !d.closed);
+  h += `<h2>Harian</h2><div class="mcard"><table class="dtab"><thead><tr><th>Tarikh</th><th>Leads</th><th>Walk-in</th><th></th></tr></thead><tbody>`;
+  rows.forEach(d=>{
+    const dt = new Date(d.iso+"T00:00:00"), lbl = HR3[dt.getDay()]+" "+dt.getDate();
+    if(!d.src){ h += `<tr class="miss"><td>${lbl}</td><td colspan="2">${partial?"…":"tiada data"}</td><td></td></tr>`; return; }
+    const cell = v => { const s = cats.map(c=>v[c]||0).join(" · "); return `<b>${fmtN(cats.reduce((a,c)=>a+(v[c]||0),0))}</b><small>${s}</small>`; };
+    const tag = {M:'<span class="src">MASTER</span>', A:'<span class="src app">APP</span>', L:'<span class="src app">LIVE</span>', P:'<span class="src">BELUM HANTAR</span>'}[d.src];
+    h += `<tr><td>${lbl}${d.closed?'<small>hari tutup</small>':""}</td><td>${cell(d.lead)}</td><td>${cell(d.walkin)}</td><td>${tag}</td></tr>`;
+  });
+  if(!rows.length) h += `<tr><td colspan="4" class="mload">Belum ada data bulan ni.</td></tr>`;
+  h += `</tbody></table><div class="mnote">Pecahan kecil ikut ${cats.map(c=>CAT[c].label).join(" · ")}.</div></div>`;
+
+  // nota sumber
+  const notes = [];
+  notes.push("Sebelum "+prettyDate(START_DATE).replace(/^\w+, /,"")+": MASTER SHEET (diisi HOD Sales). Selepas itu: app ni.");
+  if(o==="KLL" && key<="2026-08") notes.push("Sebelum 20 Ogos dikira dari data Kulim.");
+  if(plan) notes.push("Target ikut brief company, garis menegak pada bar = sasaran setakat hari ini ("+done+"/"+tot+" hari operasi).");
+  else if(!cfgOk) notes.push("Target tak dapat dimuat (tiada internet). Nombor sebenar masih betul.");
+  else notes.push("Target bulan ni belum ditetapkan.");
+  if(mirrorErr && (key+"-01")<START_DATE) notes.push("MASTER tak dapat dibaca ("+esc(mirrorErr)+")"+(mirror?", guna salinan terakhir.":"."));
+  if(live && live.ok===false) notes.push("Data app tak dapat dimuat ("+esc(live.err||"offline")+").");
+  h += `<div class="foot" style="text-align:left; line-height:1.6;">${notes.join("<br>")}</div>`;
+  body.innerHTML = h;
+}
+// config dashboard dimuat secara defer: lukis semula bila siap
+window.addEventListener("load", ()=>{ if(view==="month") openMonth(); });
 
 /* ================= UI UTIL ================= */
 function show(id){ document.getElementById(id).classList.add("show"); }
