@@ -1129,6 +1129,15 @@ function scoreStatus(a, t, pace, isCur){
   return {lvl: a>=exp*0.8 ? "warn" : "bad", txt:"Kurang "+fmtN(gap), gap};
 }
 
+// pace KPI outlet: hari operasi yang dah lepas (hari ini belum dikira, submission masih boleh masuk)
+function paceScore(o, key){
+  const today = todayStr(), [y,m] = key.split("-").map(Number), isCur = key===today.slice(0,7), tot = opDays(o,y,m);
+  if(!isCur) return { isCur, tot, done:tot, pace:1 };
+  let done = 0;
+  for(let d=1; d<=new Date(y,m,0).getDate(); d++){ const iso = key+"-"+pad2(d); if(iso>=today) break; if(!isClosed(o,iso)) done++; }
+  return { isCur, tot, done, pace: tot ? done/tot : 1 };
+}
+
 let scoreReq = 0;
 async function openScore(){
   if(!outlet) return;
@@ -1140,56 +1149,47 @@ async function openScore(){
     return;
   }
   const req = ++scoreReq, o = outlet, key = mMonth;
-  const needM = (key+"-01") < START_DATE, needL = (key+"-31") >= START_DATE;
-  if(content && !(needM && !mirror)) renderScore(o, key, {rows:[]}, true);
+  if(content) renderScore(o, key);
   else body.innerHTML = `<div class="mload">Mengira skor ${BLN3[Number(key.slice(5))-1]}…</div>`;
-  const [ , live] = await Promise.all([ needM ? loadMirror() : null, needL ? loadLive(o,key) : {rows:[],ok:true}, loadContent(), loadReview(key) ]);
+  await Promise.all([ loadContent(), loadReview(key) ]);
   if(req!==scoreReq || view!=="score" || o!==outlet) return;
-  renderScore(o, key, live, false);
+  renderScore(o, key);
 }
 
-function renderScore(o, key, live, partial){
+// Skor outlet = 5 KPI wajib sahaja: Gambar Customer, Before/After, RAW Video Phone, RAW Video Repair, Google Review.
+// Leads/Walk-in ada di tab Bulanan (KPI marketing, bukan skor outlet).
+function renderScore(o, key){
   const def = OUTLETS[o], body = document.getElementById("sBody");
-  const M = monthDays(o, key, live), {y,m} = M, today = todayStr();
-  const {isCur, tot, done, left, pace} = paceOf(o, key, M);
-  const plan = monthPlan(o, y, m), ct = contentTargets(o), cs = contentMonth(o, key);
-  const cats = MCATS.filter(c=>def.cats.includes(c));
-  const sums = {lead:{phone:0,repair:0,cc:0,others:0}, walkin:{phone:0,repair:0,cc:0,others:0}};
-  M.days.forEach(d=>["lead","walkin"].forEach(k=>{ if(d[k]) ALLC.forEach(c=>sums[k][c]+=d[k][c]||0); }));
+  const [y,m] = key.split("-").map(Number);
+  const {isCur, tot, done, pace} = paceScore(o, key);
+  const ct = contentTargets(o), cs = contentMonth(o, key);
+  const rv = review[key] && review[key].data;
 
-  // senarai KPI: [kumpulan, label, sub, actual, target, daily?]
   const items = [];
   if(ct) CS_ROWS.forEach(([label,k])=>{ if(ct[k]) items.push({g:"cs", label, a: cs ? cs[k] : null, t: ct[k]}); });
-  const rv = review[key] && review[key].data;
   items.push({g:"rv", label:"Google Review", a: rv ? rv[PLAN_KEY[o]] : null, t: rv ? rv.target : RV_TARGET});
-  if(plan) ["lead","walkin"].forEach(k=>cats.forEach(c=>{ const t=plan[k][c]; if(t) items.push({g:k, label:CAT[c].label, sub:KIND[k].label, a:sums[k][c], t, daily:true, c}); }));
   items.forEach(it=>it.st = scoreStatus(it.a, it.t, pace, isCur));
   const scored = items.filter(it=>it.st.lvl!=="na"), hit = scored.filter(it=>it.st.lvl==="good").length;
   const bad = scored.filter(it=>it.st.lvl==="bad"), ratio = scored.length ? hit/scored.length : 0;
   const lvl = !bad.length ? (ratio>=0.75 ? "good" : "warn") : bad.length<=1 ? "warn" : "bad";
+  const pend = items.filter(it=>it.st.lvl==="na");
 
   let h = "";
-  // ---- ringkasan ----
   const R = 32, C = 2*Math.PI*R;
   const focus = bad.length ? bad : scored.filter(it=>it.st.lvl==="warn");
-  const nm = it => it.sub ? it.sub+" "+it.label : it.label;
+  const word = isCur ? "ikut pace" : "capai";
   h += `<div class="mcard"><div class="shero">
     <div class="sring ${lvl}"><svg viewBox="0 0 76 76"><circle class="tr" cx="38" cy="38" r="${R}"/><circle class="fg" cx="38" cy="38" r="${R}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-ratio)).toFixed(1)}"/></svg>
       <div class="v"><span>${hit}<small>/${scored.length}</small></span></div></div>
     <div><div class="lbl">Skor ${def.name} · ${BLN3[m-1]} ${String(y).slice(2)}</div>
-      <div class="big">${scored.length ? (hit===scored.length ? "Semua KPI "+(isCur?"ikut pace":"capai") : hit+" daripada "+scored.length+" KPI "+(isCur?"ikut pace":"capai")) : "Belum ada KPI untuk dinilai"}</div>
-      <div class="sm">${focus.length ? "<b>Fokus:</b> "+focus.map(nm).join(", ") : (scored.length ? "Tiada KPI merah." : "")}</div></div>
-  </div>${isCur ? `<div class="mnote">Dinilai ikut sasaran setakat hari ini: ${done}/${tot} hari operasi.</div>` : ""}</div>`;
+      <div class="big">${scored.length ? (hit===scored.length ? "Semua KPI wajib "+word : hit+" daripada "+scored.length+" KPI wajib "+word) : "Belum ada KPI untuk dinilai"}</div>
+      <div class="sm">${focus.length ? "<b>Fokus:</b> "+focus.map(it=>it.label).join(", ") : (scored.length ? "Tiada KPI merah." : "")}</div></div>
+  </div><div class="mnote">${isCur ? "Dinilai ikut sasaran setakat semalam: "+done+"/"+tot+" hari operasi." : "Dinilai ikut target penuh bulan."}${pend.length ? " "+pend.map(it=>it.label).join(", ")+" belum ada data, tak dikira." : ""}</div></div>`;
 
-  // ---- kumpulan ----
   const row = it => {
     const ico = {good:"✓", warn:"!", bad:"×", na:"–"}[it.st.lvl];
     const pct = it.t ? Math.min(100, (it.a||0)/it.t*100) : 0;
-    let why = "";
-    if(isCur && it.a!=null && it.a<it.t && it.st.lvl!=="good"){
-      why = "Perlu "+fmtN(it.st.gap)+" lagi untuk kejar pace";
-      if(it.daily && left>0) why += " · "+fmtN(Math.ceil((it.t-it.a)/left))+" sehari untuk capai target";
-    }
+    const why = isCur && it.a!=null && it.a<it.t && it.st.lvl!=="good" ? "Perlu "+fmtN(it.st.gap)+" lagi untuk kejar pace · "+fmtN(it.t-it.a)+" lagi untuk capai target" : "";
     return `<div class="srow"><div class="t"><span class="ic ${it.st.lvl}">${ico}</span>
       <span class="n">${it.label}</span>
       <span class="a"><b>${it.a==null?"–":fmtN(it.a)}</b> / ${fmtN(it.t)}</span></div>
@@ -1199,27 +1199,14 @@ function renderScore(o, key, live, partial){
   const group = (title, list, extra) => list.length ? `<div class="mcard"><div class="sgrp">${title}</div>${list.map(row).join("")}${extra||""}</div>` : "";
   const csNote = cs ? (cs.last ? "Data CONTENT SUBMIT terakhir: "+Number(cs.last.slice(8))+" "+BLN3[Number(cs.last.slice(5,7))-1]+"." : "Belum ada rekod content supply bulan ni dalam CONTENT SUBMIT.") : "";
   h += group("Content Supply", items.filter(it=>it.g==="cs"), csNote ? `<div class="mnote">${csNote}</div>` : "");
-  const oth = [];
-  if(sums.lead.others) oth.push("Leads "+fmtN(sums.lead.others));
-  if(sums.walkin.others) oth.push("Walk-in "+fmtN(sums.walkin.others));
-  const lT = cats.reduce((a,c)=>a+sums.lead[c],0), wT = cats.reduce((a,c)=>a+sums.walkin[c],0);
-  let kn = "";
-  if(oth.length) kn += `<div class="mnote">Others: ${oth.join(" · ")} (dipapar sahaja, tak dikira dalam skor).</div>`;
-  if(lT) kn += `<div class="mnote">Nisbah walk-in / leads (tanpa Others): <b>${Math.round(wT/lT*100)}%</b>. Info sahaja: walk-in tak semestinya datang dari leads.</div>`;
   const rvIt = items.find(it=>it.g==="rv");
-  const rvNote = rvIt.a==null ? (review[key] && review[key].err && !rv ? "REPORT CONTENT DATA tak dapat dibaca untuk bulan ni." : "Belum diisi dalam REPORT CONTENT DATA untuk bulan ni, jadi tak dikira dalam skor.") : "Sumber: REPORT CONTENT DATA (tab bulan).";
+  const rvNote = rvIt.a==null ? (review[key] && review[key].err && !rv ? "REPORT CONTENT DATA tak dapat dibaca untuk bulan ni." : "Belum diisi dalam REPORT CONTENT DATA untuk bulan ni.") : "Sumber: REPORT CONTENT DATA (tab bulan).";
   h += group("Google Review", [rvIt], `<div class="mnote">${rvNote}</div>`);
-  h += group("Kedai · Leads", items.filter(it=>it.g==="lead"));
-  h += group("Kedai · Walk-in", items.filter(it=>it.g==="walkin"), kn);
 
-  // ---- amaran ----
-  const missing = M.days.filter(d=>!d.closed && !d.src && d.iso<today);
-  if(missing.length && !partial) h += `<div class="mwarn"><b>${missing.length} hari operasi tiada data leads/walk-in</b>, jadi skor Kedai mungkin lebih rendah dari sebenar. Semak tab Bulanan.</div>`;
   const notes = [];
-  if(!plan) notes.push(window.KLIKI_CONFIG ? "Target leads/walk-in bulan ni belum ditetapkan." : "Target tak dapat dimuat (tiada internet).");
+  if(!ct) notes.push(window.KLIKI_CONFIG ? "Target content supply belum ditetapkan." : "Target tak dapat dimuat (tiada internet).");
   if(contentErr) notes.push("CONTENT SUBMIT tak dapat dibaca ("+esc(contentErr)+")"+(content?", guna salinan terakhir.":"."));
-  if(live && live.ok===false) notes.push("Data app tak dapat dimuat ("+esc(live.err||"offline")+").");
-  notes.push("Klik WhatsApp & Lokasi tak dikira dalam skor outlet (dipantau marketing).");
+  notes.push("Leads & Walk-in: lihat tab Bulanan.");
   h += `<div class="foot" style="text-align:left; line-height:1.6;">${notes.join("<br>")}</div>`;
   body.innerHTML = h;
 }
