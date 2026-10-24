@@ -1083,6 +1083,38 @@ function contentMonth(o, key){
   });
   return res;
 }
+// Google Review: blok "SISTEM PEMARKAHAN BULANAN" dalam tab bulan REPORT CONTENT DATA (kolum S:X).
+// Baris "Google Review": [label, Kulim/Kelang Lama, Alor Setar, Sungai Petani, Pendang, "Min: 30"]. Sel kosong = belum diisi (bukan 0).
+const RC_FALLBACK = "1Q9XMBK0qBmZw8BLQT5w0pA3OC7EMFQz_ascdT50dYWI";
+const RV_KEY = "kliki_tracker_review_v1", RV_TARGET = 30;
+const review = {}; // "2026-10" -> {at, data:{KUL,AOR,SP,PDG,target}|null, err}
+try{ Object.assign(review, JSON.parse(localStorage.getItem(RV_KEY))||{}); }catch(e){}
+function loadReview(key){
+  const c = review[key];
+  if(c && c.at && Date.now()-c.at < 10*60000 && !c.err) return Promise.resolve(c);
+  const C = window.KLIKI_CONFIG, id = (C && C.sheets && C.sheets.reportContent) || RC_FALLBACK;
+  const [y,m] = key.split("-").map(Number), gid = C && C.monthTabs && C.monthTabs[key];
+  const urls = gid!=null ? ["https://docs.google.com/spreadsheets/d/"+id+"/export?format=csv&gid="+gid+"&range=S1:X30"]
+    : ((C && C.monthTabNames && C.monthTabNames[m]) || []).map(n=>"https://docs.google.com/spreadsheets/d/"+id+"/gviz/tq?tqx=out:csv&headers=0&range=S1:X30&sheet="+encodeURIComponent(n+"'"+String(y).slice(2))+"&_="+Date.now());
+  const tryOne = async () => {
+    for(const u of urls){
+      try{
+        const t = await fetch(u,{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); });
+        if(/^\s*</.test(t)) continue;
+        const row = parseCSV(t).find(r=>/google\s*review/i.test(r[0]||""));
+        if(!row) continue;
+        const tg = Number(String(row[5]||"").replace(/[^\d.]/g,""));
+        return { KUL:csNum(row[1]), AOR:csNum(row[2]), SP:csNum(row[3]), PDG:csNum(row[4]), target: tg>0 ? tg : RV_TARGET };
+      }catch(e){}
+    }
+    return null;
+  };
+  return tryOne().then(data=>{
+    review[key] = data ? {at:Date.now(), data} : {at:Date.now(), data:(c&&c.data)||null, err: urls.length ? "tab bulan tak dijumpai" : "tab bulan tiada"};
+    try{ localStorage.setItem(RV_KEY, JSON.stringify(review)); }catch(e){}
+    return review[key];
+  });
+}
 function contentTargets(o){
   const T = window.KLIKI_CONFIG && window.KLIKI_CONFIG.targets && window.KLIKI_CONFIG.targets.outlet;
   return T ? T[PLAN_KEY[o]] || null : null;
@@ -1111,7 +1143,7 @@ async function openScore(){
   const needM = (key+"-01") < START_DATE, needL = (key+"-31") >= START_DATE;
   if(content && !(needM && !mirror)) renderScore(o, key, {rows:[]}, true);
   else body.innerHTML = `<div class="mload">Mengira skor ${BLN3[Number(key.slice(5))-1]}…</div>`;
-  const [ , live] = await Promise.all([ needM ? loadMirror() : null, needL ? loadLive(o,key) : {rows:[],ok:true}, loadContent() ]);
+  const [ , live] = await Promise.all([ needM ? loadMirror() : null, needL ? loadLive(o,key) : {rows:[],ok:true}, loadContent(), loadReview(key) ]);
   if(req!==scoreReq || view!=="score" || o!==outlet) return;
   renderScore(o, key, live, false);
 }
@@ -1128,6 +1160,8 @@ function renderScore(o, key, live, partial){
   // senarai KPI: [kumpulan, label, sub, actual, target, daily?]
   const items = [];
   if(ct) CS_ROWS.forEach(([label,k])=>{ if(ct[k]) items.push({g:"cs", label, a: cs ? cs[k] : null, t: ct[k]}); });
+  const rv = review[key] && review[key].data;
+  items.push({g:"rv", label:"Google Review", a: rv ? rv[PLAN_KEY[o]] : null, t: rv ? rv.target : RV_TARGET});
   if(plan) ["lead","walkin"].forEach(k=>cats.forEach(c=>{ const t=plan[k][c]; if(t) items.push({g:k, label:CAT[c].label, sub:KIND[k].label, a:sums[k][c], t, daily:true, c}); }));
   items.forEach(it=>it.st = scoreStatus(it.a, it.t, pace, isCur));
   const scored = items.filter(it=>it.st.lvl!=="na"), hit = scored.filter(it=>it.st.lvl==="good").length;
@@ -1172,6 +1206,9 @@ function renderScore(o, key, live, partial){
   let kn = "";
   if(oth.length) kn += `<div class="mnote">Others: ${oth.join(" · ")} (dipapar sahaja, tak dikira dalam skor).</div>`;
   if(lT) kn += `<div class="mnote">Nisbah walk-in / leads (tanpa Others): <b>${Math.round(wT/lT*100)}%</b>. Info sahaja: walk-in tak semestinya datang dari leads.</div>`;
+  const rvIt = items.find(it=>it.g==="rv");
+  const rvNote = rvIt.a==null ? (review[key] && review[key].err && !rv ? "REPORT CONTENT DATA tak dapat dibaca untuk bulan ni." : "Belum diisi dalam REPORT CONTENT DATA untuk bulan ni, jadi tak dikira dalam skor.") : "Sumber: REPORT CONTENT DATA (tab bulan).";
+  h += group("Google Review", [rvIt], `<div class="mnote">${rvNote}</div>`);
   h += group("Kedai · Leads", items.filter(it=>it.g==="lead"));
   h += group("Kedai · Walk-in", items.filter(it=>it.g==="walkin"), kn);
 
