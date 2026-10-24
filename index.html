@@ -1083,10 +1083,10 @@ function contentMonth(o, key){
   });
   return res;
 }
-// Google Review: blok "SISTEM PEMARKAHAN BULANAN" dalam tab bulan REPORT CONTENT DATA (kolum S:X).
+// Google Review: blok "SISTEM PEMARKAHAN BULANAN" dalam tab bulan REPORT CONTENT DATA.
 // Baris "Google Review": [label, Kulim/Kelang Lama, Alor Setar, Sungai Petani, Pendang, "Min: 30"]. Sel kosong = belum diisi (bukan 0).
 const RC_FALLBACK = "1Q9XMBK0qBmZw8BLQT5w0pA3OC7EMFQz_ascdT50dYWI";
-const RV_KEY = "kliki_tracker_review_v2", RV_TARGET = 30;
+const RV_KEY = "kliki_tracker_review_v3", RV_TARGET = 30;
 const review = {}; // "2026-10" -> {at, data:{KUL,AOR,SP,PDG,target}|null, err}
 try{ Object.assign(review, JSON.parse(localStorage.getItem(RV_KEY))||{}); }catch(e){}
 function loadReview(key){
@@ -1094,14 +1094,15 @@ function loadReview(key){
   if(c && c.at && Date.now()-c.at < 10*60000 && !c.err) return Promise.resolve(c);
   const C = window.KLIKI_CONFIG, id = (C && C.sheets && C.sheets.reportContent) || RC_FALLBACK;
   const [y,m] = key.split("-").map(Number), gid = C && C.monthTabs && C.monthTabs[key];
-  const urls = gid!=null ? ["https://docs.google.com/spreadsheets/d/"+id+"/export?format=csv&gid="+gid+"&range=S1:X30"]
-    : ((C && C.monthTabNames && C.monthTabNames[m]) || []).map(n=>"https://docs.google.com/spreadsheets/d/"+id+"/gviz/tq?tqx=out:csv&headers=0&range=S1:X30&sheet="+encodeURIComponent(n+"'"+String(y).slice(2))+"&_="+Date.now());
+  const urls = gid!=null ? ["https://docs.google.com/spreadsheets/d/"+id+"/export?format=csv&gid="+gid+"&range=A1:AF40"]
+    : ((C && C.monthTabNames && C.monthTabNames[m]) || []).map(n=>"https://docs.google.com/spreadsheets/d/"+id+"/gviz/tq?tqx=out:csv&headers=0&range=A1:AF40&sheet="+encodeURIComponent(n+"'"+String(y).slice(2))+"&_="+Date.now());
   const tryOne = async () => {
     for(const u of urls){
       try{
         const t = await fetch(u,{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); });
         if(/^\s*</.test(t)) continue;
-        const rows = parseCSV(t), find = re => rows.find(r=>re.test(r[0]||""));
+        // kedudukan blok berbeza ikut tab (S dalam SEPT/OKT, R dalam OGOS): cari label di mana-mana kolum
+        const rows = parseCSV(t), find = re => { for(const r of rows){ const ci = r.findIndex(c=>re.test(c||"")); if(ci>=0) return r.slice(ci); } return null; };
         const row = find(/google\s*review/i);
         if(!row) continue;
         const tg = Number(String(row[5]||"").replace(/[^\d.]/g,""));
