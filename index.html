@@ -75,10 +75,11 @@
   #trackerArea{display:none;}
 
   /* ---------- segmented ---------- */
-  #kindToggle{display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; padding:4px; border-radius:14px;
+  #kindToggle{display:grid; grid-template-columns:repeat(4,1fr); gap:4px; padding:4px; border-radius:14px;
     background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow);}
   #kindToggle button{display:flex; align-items:center; justify-content:center; gap:8px; border:0; background:transparent; color:var(--muted);
-    font:600 14px Inter,system-ui,sans-serif; padding:11px; border-radius:10px; cursor:pointer; transition:background .15s,color .15s;}
+    font:600 13px Inter,system-ui,sans-serif; padding:11px 4px; border-radius:10px; cursor:pointer; transition:background .15s,color .15s; min-width:0;}
+  @media (max-width:380px){ #kindToggle button{flex-direction:column; gap:3px; font-size:11.5px; padding:8px 2px;} }
   #kindToggle button svg.i{width:18px; height:18px;}
   #kindToggle button.on{background:var(--brand); color:#fff; box-shadow:0 6px 16px -8px rgba(21,101,255,.7);}
 
@@ -204,6 +205,35 @@
   .dtab .src.app{background:var(--brand-soft); color:var(--brand);}
   .dtab tr.miss td{color:var(--warn);}
   .mload{padding:28px 0; text-align:center; color:var(--muted); font-size:13.5px;}
+
+  /* ---------- skor ---------- */
+  .shero{display:flex; align-items:center; gap:16px;}
+  .sring{position:relative; width:76px; height:76px; flex:none;}
+  .sring svg{width:76px; height:76px; transform:rotate(-90deg);}
+  .sring circle{fill:none; stroke-width:8;}
+  .sring .tr{stroke:var(--surface-2);} .sring .fg{stroke-linecap:round; transition:stroke-dashoffset .4s;}
+  .sring.good .fg{stroke:var(--good);} .sring.warn .fg{stroke:var(--warn);} .sring.bad .fg{stroke:var(--bad);}
+  .sring .v{position:absolute; inset:0; display:grid; place-items:center; font-weight:800; font-size:22px; letter-spacing:-.02em;}
+  .sring .v small{font-size:13px; color:var(--muted); font-weight:600;}
+  .shero .lbl{font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
+  .shero .big{font-size:17px; font-weight:700; line-height:1.3; margin-top:2px;}
+  .shero .sm{font-size:12.5px; color:var(--text-2); margin-top:4px; line-height:1.45;}
+  .sgrp{font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--brand); margin:0 0 4px;}
+  .srow{padding:12px 0; border-top:1px solid var(--line);}
+  .srow:first-of-type{border-top:0;}
+  .srow .t{display:flex; align-items:center; gap:10px;}
+  .srow .ic{width:22px; height:22px; border-radius:50%; display:grid; place-items:center; flex:none; font-size:12px; font-weight:800;}
+  .srow .ic.good{background:var(--good-bg); color:var(--good);} .srow .ic.warn{background:var(--warn-bg); color:var(--warn);}
+  .srow .ic.bad{background:var(--bad-bg); color:var(--bad);} .srow .ic.na{background:var(--surface-2); color:var(--muted);}
+  .srow .n{flex:1; min-width:0; font-size:14px; font-weight:600;}
+  .srow .n small{display:block; font-size:11.5px; font-weight:500; color:var(--muted);}
+  .srow .a{text-align:right; font-size:13px; color:var(--muted); white-space:nowrap;}
+  .srow .a b{font-size:17px; color:var(--text); font-weight:800;}
+  .srow .bar{margin-left:32px; height:7px; margin-top:8px;} .srow .bar .pace{top:-3px; bottom:-3px;}
+  .bar>i.good{background:var(--good);} .bar>i.warn{background:var(--warn);} .bar>i.bad{background:var(--bad);}
+  .srow .why{margin:6px 0 0 32px; font-size:12px; color:var(--text-2);}
+  .slock{text-align:center; padding:28px 16px;}
+  .slock .btn{margin-top:14px;}
 </style>
 </head>
 <body>
@@ -236,11 +266,17 @@
       <button data-k="lead" onclick="setKind('lead')"><svg class="i" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2a8.4 8.4 0 0 1 7.6-12.3 8.5 8.5 0 0 1 8.5 8z"/></svg>Leads</button>
       <button data-k="walkin" onclick="setKind('walkin')"><svg class="i" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg>Walk-in</button>
       <button data-k="month" onclick="setKind('month')"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Bulanan</button>
+      <button data-k="score" onclick="setKind('score')"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>Skor</button>
     </div>
 
     <div id="monthArea" class="hidden">
       <div class="mchips" id="mChips"></div>
       <div id="mBody"><div class="mload">Memuat…</div></div>
+    </div>
+
+    <div id="scoreArea" class="hidden">
+      <div class="mchips" id="sChips"></div>
+      <div id="sBody"><div class="mload">Memuat…</div></div>
     </div>
 
     <div id="closedBanner" class="hidden"></div>
@@ -448,28 +484,31 @@ function selectOutlet(o){
   document.getElementById("emptyState").style.display="none";
   document.getElementById("trackerArea").style.display="block";
   document.getElementById("pinBtn").classList.remove("hidden");
-  setKind(view==="month" ? "month" : kind);
+  setKind(view!=="count" ? view : kind);
   fetchServerStatus();
   if(SCRIPT_URL && !S.auth[o]) openPin();
 }
-let view = S.view || "count"; // "count" | "month"
+let view = S.view || "count"; // "count" | "month" | "score"
 function setKind(k){
-  if(k==="month"){ view="month"; }
+  if(k==="month" || k==="score"){ view=k; }
   else { view="count"; kind=k; S.kind=k; }
   S.view=view; save();
   document.body.classList.toggle("k-walkin", view==="count" && kind==="walkin");
-  document.querySelectorAll("#kindToggle button").forEach(b=>b.classList.toggle("on", view==="month" ? b.dataset.k==="month" : b.dataset.k===kind));
-  const isM = view==="month";
+  document.querySelectorAll("#kindToggle button").forEach(b=>b.classList.toggle("on", view!=="count" ? b.dataset.k===view : b.dataset.k===kind));
+  const isM = view!=="count";
   ["counterArea","submitBtn","actRow","footNote"].forEach(id=>document.getElementById(id).classList.toggle("hidden", isM));
-  document.getElementById("monthArea").classList.toggle("hidden", !isM);
-  if(isM){ document.getElementById("closedBanner").classList.add("hidden"); openMonth(); }
+  document.getElementById("monthArea").classList.toggle("hidden", view!=="month");
+  document.getElementById("scoreArea").classList.toggle("hidden", view!=="score");
+  if(isM) document.getElementById("closedBanner").classList.add("hidden");
+  if(view==="month") openMonth();
+  else if(view==="score") openScore();
   else render();
 }
 
 /* ================= RENDER ================= */
 function render(){
   if(!outlet) return;
-  if(view==="month"){ renderStatus(); return; }
+  if(view!=="count"){ renderStatus(); return; }
   const d = todayStr(), def = OUTLETS[outlet], v = getCounts(outlet,d,kind);
   const closed = isClosed(outlet,d);
   const banner = document.getElementById("closedBanner");
@@ -491,7 +530,7 @@ function render(){
 
 let serverToday = null; // {lead:{...,pic,updated_at}, walkin:{...}}
 function renderStatus(){
-  if(view==="month") return;
+  if(view!=="count") return;
   const card = document.getElementById("statusCard"), t = document.getElementById("statusText");
   const d = todayStr(), key = outlet+"|"+d, sent = S.sent[key];
   const queued = S.queue.some(p=>p.outlet===outlet && p.date===d);
@@ -560,6 +599,7 @@ async function submitPin(){
     const r = await api({action:"login", outlet, pin});
     if(!r.ok){ err.textContent = r.error || "Gagal"; return; }
     S.auth[outlet]={pin,pic}; S.lastPic=pic; save(); closeModal("pinModal"); toast("PIN disahkan ✓");
+    if(view==="score") openScore();
   }catch(e){ err.textContent = "Tiada internet. Cuba lagi bila ada line."; }
   finally{ btn.disabled=false; }
 }
@@ -635,7 +675,7 @@ async function flushQueue(){
   flushing=false; render();
 }
 window.addEventListener("online", flushQueue);
-document.addEventListener("visibilitychange", ()=>{ if(!document.hidden){ flushQueue(); fetchServerStatus(); render(); if(view==="month") openMonth(); } });
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden){ flushQueue(); fetchServerStatus(); render(); if(view==="month") openMonth(); if(view==="score") openScore(); } });
 
 /* ================= TELEGRAM ================= */
 function reportText(k, o, d){
@@ -856,21 +896,33 @@ function monthDays(o, ymKey, live){
   }
   return { y, m, dim, days };
 }
+// pace ikut hari operasi outlet (hari ini dikira bila dah ada kiraan)
+function paceOf(o, key, M){
+  const today = todayStr(), [y,m] = key.split("-").map(Number), isCur = key===today.slice(0,7), tot = opDays(o,y,m);
+  let done = tot, left = 0;
+  if(isCur){
+    const pastOp = M.days.filter(d=>d.iso<today && !d.closed).length;
+    const tday = M.days.find(d=>d.iso===today);
+    const todayIn = tday && !tday.closed && tday.src && (total(tday.lead)+total(tday.walkin))>0;
+    done = pastOp + (todayIn?1:0); left = Math.max(0, tot-done);
+  }
+  return { isCur, tot, done, left, pace: tot ? done/tot : 1 };
+}
 function opDays(o, y, m){ let n=0; const dim=new Date(y,m,0).getDate(); for(let d=1; d<=dim; d++) if(!isClosed(o, y+"-"+pad2(m)+"-"+pad2(d))) n++; return n; }
 
-function monthChips(){
+function monthChips(id){
   const now = new Date(todayStr()+"T00:00:00"), out=[];
   for(let i=0;i<6;i++){ const d=new Date(now.getFullYear(), now.getMonth()-i, 1); out.push(d.getFullYear()+"-"+pad2(d.getMonth()+1)); }
   if(!mMonth) mMonth = out[0];
-  document.getElementById("mChips").innerHTML = out.map(k=>{ const [y,m]=k.split("-").map(Number);
+  document.getElementById(id||"mChips").innerHTML = out.map(k=>{ const [y,m]=k.split("-").map(Number);
     return `<button class="mchip${k===mMonth?" on":""}" onclick="pickMonth('${k}')">${BLN3[m-1]} ${String(y).slice(2)}</button>`; }).join("");
 }
-function pickMonth(k){ mMonth=k; openMonth(); }
+function pickMonth(k){ mMonth=k; if(view==="score") openScore(); else openMonth(); }
 
 let monthReq = 0;
 async function openMonth(){
   if(!outlet) return;
-  monthChips();
+  monthChips("mChips");
   const req = ++monthReq, o = outlet, key = mMonth;
   const body = document.getElementById("mBody");
   const needM = (key+"-01") < START_DATE, needL = (key+"-31") >= START_DATE;
@@ -892,17 +944,7 @@ function renderMonth(o, key, live, partial){
   const def = OUTLETS[o], body = document.getElementById("mBody");
   const M = monthDays(o, key, live), {y,m} = M, today = todayStr();
   const plan = monthPlan(o, y, m), cfgOk = !!window.KLIKI_CONFIG;
-  const isCur = key===today.slice(0,7);
-  // pace ikut hari operasi outlet
-  const tot = opDays(o,y,m);
-  let done = tot, left = 0;
-  if(isCur){
-    const pastOp = M.days.filter(d=>d.iso<today && !d.closed).length;
-    const tday = M.days.find(d=>d.iso===today);
-    const todayIn = tday && !tday.closed && tday.src && (total(tday.lead)+total(tday.walkin))>0;
-    done = pastOp + (todayIn?1:0); left = Math.max(0, tot-done);
-  }
-  const pace = tot ? done/tot : 1;
+  const {isCur, tot, done, left, pace} = paceOf(o, key, M);
   const sums = {lead:{phone:0,repair:0,cc:0,others:0}, walkin:{phone:0,repair:0,cc:0,others:0}};
   M.days.forEach(d=>["lead","walkin"].forEach(k=>{ if(d[k]) ALLC.forEach(c=>sums[k][c]+=d[k][c]||0); }));
   const missing = M.days.filter(d=>!d.closed && !d.src && d.iso<today);
@@ -970,7 +1012,180 @@ function renderMonth(o, key, live, partial){
   body.innerHTML = h;
 }
 // config dashboard dimuat secara defer: lukis semula bila siap
-window.addEventListener("load", ()=>{ if(view==="month") openMonth(); });
+window.addEventListener("load", ()=>{ if(view==="month") openMonth(); if(view==="score") openScore(); });
+
+/* ================= SKOR ================= */
+// Skor outlet = KPI yang outlet kawal sahaja: Content Supply + Leads/Walk-in ikut kategori.
+// Klik WhatsApp / Lokasi (kerja marketing) dan "conversion" walk-in/leads TIDAK dikira di sini.
+// Status ikut pace hari operasi (sama dengan tab Bulanan). Others dipapar, tak dikira.
+// Content Supply dibaca terus dari CONTENT SUBMIT (sheet & target sama dengan KLIKI Marketing Dashboard).
+const CS_FALLBACK = { id:"1NxItlmxUlk1P1VECvarYmWUPyYRh9Ltnd6KmDpNDOec",
+  supply:{gid:1718034587, range:"A1:M2000"}, customer:{gid:1092329235, range:"A1:E2000"}, beforeAfter:{gid:492157388, range:"A1:D2000"} };
+const CS_COLS = {
+  supply:["KUL_P","KUL_R","AOR_P","AOR_R","SP_P","SP_R","PDG_P","PDG_R","HQ_P","HQ_T","HQ_R","Others"],
+  customer:["KUL","AOR","SP","PDG"], beforeAfter:["KUL","AOR","SP"],
+};
+const CS_KEY = "kliki_tracker_content_v1";
+const CS_ROWS = [ // [label, kunci target, tab, kolum]
+  ["RAW Video Phone","rawPhone","supply",dk=>dk+"_P"], ["RAW Video Repair","rawRepair","supply",dk=>dk+"_R"],
+  ["Gambar Customer","customer","customer",dk=>dk], ["Before / After","beforeAfter","beforeAfter",dk=>dk],
+];
+let content = null, contentAt = null, contentErr = null, contentLoading = null;
+
+function csIso(s){
+  s = String(s||"").trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m) return m[1]+"-"+m[2].padStart(2,"0")+"-"+m[3].padStart(2,"0");
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/); if(!m) return null;
+  const y = m[3].length===2 ? "20"+m[3] : m[3]; return y+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");
+}
+const csNum = v => { const t=String(v==null?"":v).replace(/[,\s%]/g,""); if(t===""||t==="-"||/#/.test(t)) return null; const n=Number(t); return isFinite(n)?n:null; };
+function loadContent(force){
+  if(contentLoading) return contentLoading;
+  if(content && !force && Date.now()-contentAt < 10*60000) return Promise.resolve(content);
+  if(!content){ try{ const c=JSON.parse(localStorage.getItem(CS_KEY)); if(c&&c.data){ content=c.data; contentAt=c.at; } }catch(e){} }
+  const C = window.KLIKI_CONFIG, id = (C && C.sheets && C.sheets.contentSubmit) || CS_FALLBACK.id;
+  const cut = new Date(); cut.setMonth(cut.getMonth()-7); const cutIso = cut.toISOString().slice(0,7)+"-01";
+  const one = tab => {
+    const t = (C && C.tabs && C.tabs[tab]) || CS_FALLBACK[tab];
+    const url = "https://docs.google.com/spreadsheets/d/"+id+"/export?format=csv&gid="+t.gid+"&range="+t.range;
+    return fetch(url,{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); }).then(txt=>{
+      if(/^\s*</.test(txt)) throw new Error("CONTENT SUBMIT tak boleh dibaca");
+      const out = {};
+      for(const r of parseCSV(txt)){
+        const iso = csIso(r[0]); if(!iso || iso<cutIso) continue;
+        const v = {}; let any=false;
+        CS_COLS[tab].forEach((k,i)=>{ const n=csNum(r[i+1]); if(n!=null){ v[k]=n; any=true; } });
+        if(any) out[iso] = v;
+      }
+      return out;
+    });
+  };
+  contentLoading = Promise.all(["supply","customer","beforeAfter"].map(one))
+    .then(([supply,customer,beforeAfter])=>{
+      content = {supply,customer,beforeAfter}; contentAt = Date.now(); contentErr = null;
+      try{ localStorage.setItem(CS_KEY, JSON.stringify({at:contentAt, data:content})); }catch(e){}
+      return content;
+    })
+    .catch(e=>{ contentErr = e.message||"ralat"; return content; })
+    .finally(()=>{ contentLoading=null; });
+  return contentLoading;
+}
+function contentMonth(o, key){
+  if(!content) return null;
+  const dk = PLAN_KEY[o], res = {last:null};
+  CS_ROWS.forEach(([ , k, tab, colf])=>{
+    const col = colf(dk); let s = null;
+    Object.entries(content[tab]||{}).forEach(([iso,v])=>{
+      if(iso.slice(0,7)!==key || v[col]==null) return;
+      s = (s||0) + v[col]; if(!res.last || iso>res.last) res.last = iso;
+    });
+    res[k] = s==null ? 0 : s; // tiada baris = 0 dihantar
+  });
+  return res;
+}
+function contentTargets(o){
+  const T = window.KLIKI_CONFIG && window.KLIKI_CONFIG.targets && window.KLIKI_CONFIG.targets.outlet;
+  return T ? T[PLAN_KEY[o]] || null : null;
+}
+
+// good = capai / ikut pace · warn = >= 80% daripada sasaran setakat hari ini · bad = bawah itu
+function scoreStatus(a, t, pace, isCur){
+  if(a==null || !t) return {lvl:"na", txt:"Tiada data", gap:0};
+  if(a>=t) return {lvl:"good", txt:"Capai target", gap:0};
+  const exp = t*(isCur ? pace : 1), gap = Math.ceil(exp-a);
+  if(a>=exp) return {lvl:"good", txt:"Ikut pace", gap:0};
+  return {lvl: a>=exp*0.8 ? "warn" : "bad", txt:"Kurang "+fmtN(gap), gap};
+}
+
+let scoreReq = 0;
+async function openScore(){
+  if(!outlet) return;
+  monthChips("sChips");
+  const body = document.getElementById("sBody");
+  if(SCRIPT_URL && !S.auth[outlet]){
+    body.innerHTML = `<div class="mcard slock"><div class="hint">Skor hanya untuk staf <b>${esc(OUTLETS[outlet].name)}</b>. Masuk PIN outlet ni dulu.</div>
+      <button class="btn primary" onclick="openPin()">${svg('<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>')}Masuk PIN</button></div>`;
+    return;
+  }
+  const req = ++scoreReq, o = outlet, key = mMonth;
+  const needM = (key+"-01") < START_DATE, needL = (key+"-31") >= START_DATE;
+  if(content && !(needM && !mirror)) renderScore(o, key, {rows:[]}, true);
+  else body.innerHTML = `<div class="mload">Mengira skor ${BLN3[Number(key.slice(5))-1]}…</div>`;
+  const [ , live] = await Promise.all([ needM ? loadMirror() : null, needL ? loadLive(o,key) : {rows:[],ok:true}, loadContent() ]);
+  if(req!==scoreReq || view!=="score" || o!==outlet) return;
+  renderScore(o, key, live, false);
+}
+
+function renderScore(o, key, live, partial){
+  const def = OUTLETS[o], body = document.getElementById("sBody");
+  const M = monthDays(o, key, live), {y,m} = M, today = todayStr();
+  const {isCur, tot, done, left, pace} = paceOf(o, key, M);
+  const plan = monthPlan(o, y, m), ct = contentTargets(o), cs = contentMonth(o, key);
+  const cats = MCATS.filter(c=>def.cats.includes(c));
+  const sums = {lead:{phone:0,repair:0,cc:0,others:0}, walkin:{phone:0,repair:0,cc:0,others:0}};
+  M.days.forEach(d=>["lead","walkin"].forEach(k=>{ if(d[k]) ALLC.forEach(c=>sums[k][c]+=d[k][c]||0); }));
+
+  // senarai KPI: [kumpulan, label, sub, actual, target, daily?]
+  const items = [];
+  if(ct) CS_ROWS.forEach(([label,k])=>{ if(ct[k]) items.push({g:"cs", label, a: cs ? cs[k] : null, t: ct[k]}); });
+  if(plan) ["lead","walkin"].forEach(k=>cats.forEach(c=>{ const t=plan[k][c]; if(t) items.push({g:k, label:CAT[c].label, sub:KIND[k].label, a:sums[k][c], t, daily:true, c}); }));
+  items.forEach(it=>it.st = scoreStatus(it.a, it.t, pace, isCur));
+  const scored = items.filter(it=>it.st.lvl!=="na"), hit = scored.filter(it=>it.st.lvl==="good").length;
+  const bad = scored.filter(it=>it.st.lvl==="bad"), ratio = scored.length ? hit/scored.length : 0;
+  const lvl = !bad.length ? (ratio>=0.75 ? "good" : "warn") : bad.length<=1 ? "warn" : "bad";
+
+  let h = "";
+  // ---- ringkasan ----
+  const R = 32, C = 2*Math.PI*R;
+  const focus = bad.length ? bad : scored.filter(it=>it.st.lvl==="warn");
+  const nm = it => it.sub ? it.sub+" "+it.label : it.label;
+  h += `<div class="mcard"><div class="shero">
+    <div class="sring ${lvl}"><svg viewBox="0 0 76 76"><circle class="tr" cx="38" cy="38" r="${R}"/><circle class="fg" cx="38" cy="38" r="${R}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-ratio)).toFixed(1)}"/></svg>
+      <div class="v"><span>${hit}<small>/${scored.length}</small></span></div></div>
+    <div><div class="lbl">Skor ${def.name} · ${BLN3[m-1]} ${String(y).slice(2)}</div>
+      <div class="big">${scored.length ? (hit===scored.length ? "Semua KPI "+(isCur?"ikut pace":"capai") : hit+" daripada "+scored.length+" KPI "+(isCur?"ikut pace":"capai")) : "Belum ada KPI untuk dinilai"}</div>
+      <div class="sm">${focus.length ? "<b>Fokus:</b> "+focus.map(nm).join(", ") : (scored.length ? "Tiada KPI merah." : "")}</div></div>
+  </div>${isCur ? `<div class="mnote">Dinilai ikut sasaran setakat hari ini: ${done}/${tot} hari operasi.</div>` : ""}</div>`;
+
+  // ---- kumpulan ----
+  const row = it => {
+    const ico = {good:"✓", warn:"!", bad:"×", na:"–"}[it.st.lvl];
+    const pct = it.t ? Math.min(100, (it.a||0)/it.t*100) : 0;
+    let why = "";
+    if(isCur && it.a!=null && it.a<it.t && it.st.lvl!=="good"){
+      why = "Perlu "+fmtN(it.st.gap)+" lagi untuk kejar pace";
+      if(it.daily && left>0) why += " · "+fmtN(Math.ceil((it.t-it.a)/left))+" sehari untuk capai target";
+    }
+    return `<div class="srow"><div class="t"><span class="ic ${it.st.lvl}">${ico}</span>
+      <span class="n">${it.label}</span>
+      <span class="a"><b>${it.a==null?"–":fmtN(it.a)}</b> / ${fmtN(it.t)}</span></div>
+      ${it.st.lvl!=="na" ? `<div class="bar"><i class="${it.st.lvl}" style="width:${pct}%"></i>${isCur?`<span class="pace" style="left:${pace*100}%"></span>`:""}</div>` : ""}
+      ${why ? `<div class="why">${why}</div>` : ""}</div>`;
+  };
+  const group = (title, list, extra) => list.length ? `<div class="mcard"><div class="sgrp">${title}</div>${list.map(row).join("")}${extra||""}</div>` : "";
+  const csNote = cs ? (cs.last ? "Data CONTENT SUBMIT terakhir: "+Number(cs.last.slice(8))+" "+BLN3[Number(cs.last.slice(5,7))-1]+"." : "Belum ada rekod content supply bulan ni dalam CONTENT SUBMIT.") : "";
+  h += group("Content Supply", items.filter(it=>it.g==="cs"), csNote ? `<div class="mnote">${csNote}</div>` : "");
+  const oth = [];
+  if(sums.lead.others) oth.push("Leads "+fmtN(sums.lead.others));
+  if(sums.walkin.others) oth.push("Walk-in "+fmtN(sums.walkin.others));
+  const lT = cats.reduce((a,c)=>a+sums.lead[c],0), wT = cats.reduce((a,c)=>a+sums.walkin[c],0);
+  let kn = "";
+  if(oth.length) kn += `<div class="mnote">Others: ${oth.join(" · ")} (dipapar sahaja, tak dikira dalam skor).</div>`;
+  if(lT) kn += `<div class="mnote">Nisbah walk-in / leads (tanpa Others): <b>${Math.round(wT/lT*100)}%</b>. Info sahaja: walk-in tak semestinya datang dari leads.</div>`;
+  h += group("Kedai · Leads", items.filter(it=>it.g==="lead"));
+  h += group("Kedai · Walk-in", items.filter(it=>it.g==="walkin"), kn);
+
+  // ---- amaran ----
+  const missing = M.days.filter(d=>!d.closed && !d.src && d.iso<today);
+  if(missing.length && !partial) h += `<div class="mwarn"><b>${missing.length} hari operasi tiada data leads/walk-in</b>, jadi skor Kedai mungkin lebih rendah dari sebenar. Semak tab Bulanan.</div>`;
+  const notes = [];
+  if(!plan) notes.push(window.KLIKI_CONFIG ? "Target leads/walk-in bulan ni belum ditetapkan." : "Target tak dapat dimuat (tiada internet).");
+  if(contentErr) notes.push("CONTENT SUBMIT tak dapat dibaca ("+esc(contentErr)+")"+(content?", guna salinan terakhir.":"."));
+  if(live && live.ok===false) notes.push("Data app tak dapat dimuat ("+esc(live.err||"offline")+").");
+  notes.push("Klik WhatsApp & Lokasi tak dikira dalam skor outlet (dipantau marketing).");
+  h += `<div class="foot" style="text-align:left; line-height:1.6;">${notes.join("<br>")}</div>`;
+  body.innerHTML = h;
+}
 
 /* ================= UI UTIL ================= */
 function show(id){ document.getElementById(id).classList.add("show"); }
