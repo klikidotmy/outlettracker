@@ -1106,11 +1106,7 @@ function loadReview(key){
         const row = find(/google\s*review/i);
         if(!row) continue;
         const tg = Number(String(row[5]||"").replace(/[^\d.]/g,""));
-        // Blok KPI WAJIB yang sama: nombor rasmi bulan (diisi hujung bulan). Baris pertama sahaja (bukan blok Hustler di bawah).
-        const four = r => r ? { KUL:csNum(r[1]), AOR:csNum(r[2]), SP:csNum(r[3]), PDG:csNum(r[4]) } : null;
-        const kpi = { customer:four(find(/gambar\s*customer/i)), beforeAfter:four(find(/before\s*\/?\s*after/i)),
-          rawPhone:four(find(/raw\s*video\s*phone/i)), rawRepair:four(find(/raw\s*video\s*repair/i)) };
-        return { KUL:csNum(row[1]), AOR:csNum(row[2]), SP:csNum(row[3]), PDG:csNum(row[4]), target: tg>0 ? tg : RV_TARGET, kpi };
+        return { KUL:csNum(row[1]), AOR:csNum(row[2]), SP:csNum(row[3]), PDG:csNum(row[4]), target: tg>0 ? tg : RV_TARGET };
       }catch(e){}
     }
     return null;
@@ -1172,11 +1168,8 @@ function renderScore(o, key){
   const rv = review[key] && review[key].data;
 
   const items = [];
-  // Nombor rasmi REPORT CONTENT DATA didahulukan bila dah diisi; kalau kosong guna CONTENT SUBMIT (live)
-  const kpi = rv && rv.kpi, dk = PLAN_KEY[o];
-  if(ct) CS_ROWS.forEach(([label,k])=>{ if(!ct[k]) return;
-    const off = kpi && kpi[k] ? kpi[k][dk] : null;
-    items.push({g:"cs", label, a: off!=null ? off : (cs ? cs[k] : null), t: ct[k], src: off!=null ? "R" : "C"}); });
+  // Content supply: CONTENT SUBMIT sahaja. Google Review: REPORT CONTENT DATA.
+  if(ct) CS_ROWS.forEach(([label,k])=>{ if(ct[k]) items.push({g:"cs", label, a: cs ? cs[k] : null, t: ct[k]}); });
   items.push({g:"rv", label:"Google Review", a: rv ? rv[PLAN_KEY[o]] : null, t: rv ? rv.target : RV_TARGET});
   items.forEach(it=>it.st = scoreStatus(it.a, it.t, pace, isCur));
   const scored = items.filter(it=>it.st.lvl!=="na"), hit = scored.filter(it=>it.st.lvl==="good").length;
@@ -1207,10 +1200,7 @@ function renderScore(o, key){
       ${why ? `<div class="why">${why}</div>` : ""}</div>`;
   };
   const group = (title, list, extra) => list.length ? `<div class="mcard"><div class="sgrp">${title}</div>${list.map(row).join("")}${extra||""}</div>` : "";
-  const csIt = items.filter(it=>it.g==="cs"), nR = csIt.filter(it=>it.src==="R").length;
-  const liveNote = cs ? (cs.last ? "CONTENT SUBMIT (live), data terakhir "+Number(cs.last.slice(8))+" "+BLN3[Number(cs.last.slice(5,7))-1]+"." : "CONTENT SUBMIT: belum ada rekod bulan ni.") : "";
-  const csNote = !csIt.length ? "" : nR===csIt.length ? "Sumber: REPORT CONTENT DATA (rekod rasmi bulan)."
-    : nR ? "Sumber: REPORT CONTENT DATA bila dah diisi, selebihnya "+liveNote : "Sumber: "+liveNote;
+  const csNote = cs ? (cs.last ? "Sumber: CONTENT SUBMIT, data terakhir "+Number(cs.last.slice(8))+" "+BLN3[Number(cs.last.slice(5,7))-1]+"." : "Sumber: CONTENT SUBMIT, belum ada rekod bulan ni.") : "";
   h += group("Content Supply", items.filter(it=>it.g==="cs"), csNote ? `<div class="mnote">${csNote}</div>` : "");
   const rvIt = items.find(it=>it.g==="rv");
   const rvNote = rvIt.a==null ? (review[key] && review[key].err && !rv ? "REPORT CONTENT DATA tak dapat dibaca untuk bulan ni." : "Belum diisi dalam REPORT CONTENT DATA untuk bulan ni.") : "Sumber: REPORT CONTENT DATA (tab bulan).";
