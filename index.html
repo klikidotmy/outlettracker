@@ -468,10 +468,23 @@ async function api(payload){
   if(!res.ok) throw new Error("HTTP "+res.status);
   return res.json();
 }
+// Apps Script boleh pulangkan sel tarikh sebagai Date ("Fri Oct 23 2026 00:00:00 GMT+0800 ..."),
+// bukan "2026-10-23". Seragamkan ke ISO waktu Malaysia supaya semua perbandingan tarikh dalam app jalan.
+const _myParts = d => { const p={}; new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kuala_Lumpur",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).formatToParts(d).forEach(x=>p[x.type]=x.value); return p; };
+function normDate(v){
+  const s=String(v==null?"":v).trim(); if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const d=new Date(s); if(isNaN(d)) return s; const p=_myParts(d); return p.year+"-"+p.month+"-"+p.day;
+}
+function normStamp(v){
+  const s=String(v==null?"":v).trim(); if(/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s)) return s.replace("T"," ");
+  const d=new Date(s); if(isNaN(d)) return s; const p=_myParts(d); return p.year+"-"+p.month+"-"+p.day+" "+p.hour+":"+p.minute+":"+p.second;
+}
 async function apiGet(params){
   const res = await fetch(SCRIPT_URL + "?" + new URLSearchParams(params), { cache:"no-store" });
   if(!res.ok) throw new Error("HTTP "+res.status);
-  return res.json();
+  const j = await res.json();
+  if(j && Array.isArray(j.rows)) j.rows.forEach(x=>{ x.date=normDate(x.date); if(x.updated_at!=null) x.updated_at=normStamp(x.updated_at); });
+  return j;
 }
 const isNetErr = e => e instanceof TypeError || /HTTP 5|Failed to fetch|NetworkError|Load failed/i.test(e.message||"");
 
