@@ -611,7 +611,10 @@ async function submitPin(){
   try{
     const r = await api({action:"login", outlet, pin});
     if(!r.ok){ err.textContent = r.error || "Gagal"; return; }
-    S.auth[outlet]={pin,pic}; S.lastPic=pic; save(); closeModal("pinModal"); toast("PIN disahkan ✓");
+    // PIN master (marketing): sah untuk semua outlet, jadi buka semua sekali gus
+    if(r.master){ Object.keys(OUTLETS).forEach(k=>S.auth[k]={pin,pic,master:true}); }
+    else S.auth[outlet]={pin,pic};
+    S.lastPic=pic; save(); closeModal("pinModal"); toast(r.master ? "PIN master ✓ semua outlet dibuka" : "PIN disahkan ✓");
     if(view==="score") openScore();
   }catch(e){ err.textContent = "Tiada internet. Cuba lagi bila ada line."; }
   finally{ btn.disabled=false; }
